@@ -1,22 +1,26 @@
 {{define "home"}}
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome</title>
-  <link rel="stylesheet" href="/static/pico.orange.min.css">
-</head>
-<body>
-  <main class="container">
-    <article>
-      <hgroup>
-        <h1>Welcome</h1>
-        <p>Please sign in or log in to continue</p>
-      </hgroup>
-      <div style="display: flex; gap: 1rem; justify-content: center;">
-        <a href="/signup" role="button">Sign Up</a>
-        <a href="/login" role="button" class="secondary">Log In</a>
-      </div>
-    </article>
-  </main>  
-</body>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+    <link rel="stylesheet" href="/static/pico.orange.min.css">
+  </head>
+  <body>
+    <main class="container">
+      <article>
+	<hgroup>
+          <h1>Welcome</h1>
+          <p>Please sign in or log in to continue</p>
+	</hgroup>
+	<div style="display: flex; gap: 1rem; justify-content: center;">
+          <a href="/signup" role="button">Sign Up</a>
+          <a href="/login" role="button" class="secondary">Log In</a>
+	</div>
+      </article>
+    </main>  
+  </body>
+</html>
 {{end}}
+
