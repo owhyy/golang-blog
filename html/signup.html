@@ -1,0 +1,46 @@
+{{define "signup"}}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign up</title>
+    <link rel="stylesheet" href="/static/pico.orange.min.css">
+    <script src="/static/htmx.min.js"></script>  
+  </head>
+  <body>
+    <main class="container" style="display: flex; align-items: center; min-height: 100vh;">
+      <article style="width: 100%; max-width: 500px; margin: 0 auto;">
+	<hgroup>
+          <h1>Sign Up</h1>
+          <p>Create a new account</p>
+	</hgroup>
+	
+	<div id="error-message"></div>
+	
+	<form hx-post="/signup" hx-target="#error-message" hx-swap="innerHTML">
+          <label for="email">
+            Email
+            <input type="email" id="email" name="email" required>
+          </label>
+          
+          <label for="password">
+            Password
+            <input type="password" id="password" name="password" required minlength="8">
+            <small>Must be at least 8 characters long</small>
+          </label>
+          
+          <label for="confirm-password">
+            Confirm Password
+            <input type="password" id="confirm-password" name="confirm_password" required>
+          </label>
+          
+          <button type="submit">Sign Up</button>
+	</form>
+	
+	<p>Already have an account? <a href="/login">Log in</a></p>
+      </article>
+    </main>
+  </body>
+</html>
+{{end}}
