@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "embed"
+	"golang.org/x/crypto/bcrypt"
 	"html/template"
 	"net/http"
 )
@@ -141,11 +142,15 @@ func (app *application) signup(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// TODO: Hash the password before saving
-		// hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if err != nil {
+			app.errorLog.Println(err.Error())
+			w.Write([]byte("<p style='color: red;'>Failed to create an account</p>"))
+			return
+		}
 
 		// TODO: Save user to database
-		app.infoLog.Printf("New user signed up: %s", email)
+		app.infoLog.Printf("New user signed up: %s:%s", email, hashedPassword)
 
 		w.Header().Set("HX-Redirect", "/login")
 		w.WriteHeader(http.StatusOK)
