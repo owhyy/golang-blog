@@ -1,6 +1,10 @@
 # golang-auth
 Simple &amp; secure POC authentication page
 
+## Configuration
+
+See =.env.example= for configuration options
+
 ## Running
 
 - Locally:

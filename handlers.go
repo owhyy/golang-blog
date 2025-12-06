@@ -173,8 +173,11 @@ func (app *application) signup(w http.ResponseWriter, r *http.Request) {
 			app.errorLog.Println("Failed to create token " + err.Error())
 		}
 		app.infoLog.Println("Token " + token + " created for " + email)
-		// TODO: send email
-		//MailService.sendValidationEmail(email, token)
+		err = app.emailService.SendEmail(email, app.config.BaseURL, token)
+		// Should we display error to front-end or not?
+		if err != nil {
+			app.errorLog.Println("Failed to send verification email to " + email + err.Error())
+		}
 
 		w.Header().Set("HX-Redirect", "/login")
 		w.WriteHeader(http.StatusOK)

@@ -36,3 +36,5 @@ go.work.sum
 users.db
 
 simple-auth
+
+*tmp*
