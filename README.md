@@ -3,7 +3,7 @@ Simple &amp; secure POC authentication page
 
 ## Configuration
 
-See =.env.example= for configuration options
+See `.env.example` for configuration options
 
 ## Running
 
