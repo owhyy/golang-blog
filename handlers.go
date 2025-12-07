@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"net/http"
 
+	passwordvalidator "github.com/wagslane/go-password-validator"
 	"owhyy/simple-auth/models"
 )
 
@@ -145,8 +146,10 @@ func (app *application) signup(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if len(password) < 8 {
-			w.Write([]byte("<p style='color: red;'>Password must be at least 8 characters</p>"))
+		const minEntropyBits = 60
+		err = passwordvalidator.Validate(password, minEntropyBits)
+		if err != nil {
+			w.Write([]byte("<p style='color: red;'>Error: " + err.Error() + "</p>"))
 			return
 		}
 
