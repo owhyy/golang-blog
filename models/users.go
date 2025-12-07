@@ -89,3 +89,13 @@ func (m *UserModel) ValidateByID(id int64) error {
 	)
 	return err
 }
+
+func (m *UserModel) GetEmailByID(id int64) (string, error) {
+	var email string
+	err := m.DB.QueryRow(
+		"SELECT email FROM users WHERE id = ?",
+		id,
+	).Scan(&email)
+
+	return email, err
+}

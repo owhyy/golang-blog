@@ -65,3 +65,19 @@ func (s *EmailService) SendVerificationEmail(to, baseURL, token string) error {
 
 	return s.SendEmail(to, subject, body)
 }
+
+func (s *EmailService) SendAccountVerifiedEmail(to string) error {
+	subject := "Email verified successfully"
+
+	body := `
+		<html>
+		<body>
+			<h2>Hi!</h2>
+			<p>Welcome aboard!</p>
+			<p>Your email was verified successfully</p>
+		</body>
+		</html>
+`
+
+	return s.SendEmail(to, subject, body)
+}

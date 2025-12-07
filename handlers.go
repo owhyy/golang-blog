@@ -214,7 +214,8 @@ func (app *application) verify(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
+	// TODO: ideally this proccess should be atomic
+	// but for an MVP it's alright
 	userID, err := app.tokens.Consume(token)
 	if err != nil {
 		data.Error = "Token has already been used or is expired. Please request a new verification link after logging in"
@@ -227,8 +228,6 @@ func (app *application) verify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: ideally this proccess should be atomic
-	// but for an MVP it's alright
 	err = app.users.ValidateByID(userID)
 	if err != nil {
 		data.Error = "Something went wrong. Please try again later"
@@ -244,8 +243,21 @@ func (app *application) verify(w http.ResponseWriter, r *http.Request) {
 
 	app.infoLog.Printf("User %d validated", userID)
 	err = ts.ExecuteTemplate(w, "verify", data)
+
 	if err != nil {
 		app.errorLog.Println(err.Error())
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
+
+	email, err := app.users.GetEmailByID(userID)
+	if err != nil {
+		app.errorLog.Println(err.Error())
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
+
+	err = app.emailService.SendAccountVerifiedEmail(email)
+	if err != nil {
+		app.errorLog.Println("Failed send verification email to " + email + err.Error())
+	}
+
 }
