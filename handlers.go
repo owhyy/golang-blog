@@ -337,7 +337,13 @@ func (app *application) requestPasswdReset(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = app.emailService.SendResetPasswordEmail(user.Email, app.config.BaseURL, "123")
+	token, err := app.tokens.CreatePasswordResetToken(user.ID)
+	if err != nil {
+		app.errorLog.Println(err.Error())
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
+
+	err = app.emailService.SendResetPasswordEmail(user.Email, app.config.BaseURL, token)
 	if err != nil {
 		app.errorLog.Println(err.Error())
 	}
