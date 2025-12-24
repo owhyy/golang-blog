@@ -38,3 +38,4 @@ users.db
 simple-auth
 
 *tmp*
+.idea/
