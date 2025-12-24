@@ -68,14 +68,17 @@ func main() {
 	mux := http.NewServeMux()
 
 	fileServer := http.FileServer(http.FS(staticFS))
-	mux.Handle("/static/", fileServer)
+	mux.Handle("GET /static/", fileServer)
 
-	mux.HandleFunc("/", app.home)
-	mux.HandleFunc("/login", app.login)
-	mux.HandleFunc("/signup", app.signup)
-	mux.HandleFunc("/verify", app.verify)
-	mux.HandleFunc("/profile", app.profile)
-	mux.HandleFunc("/logout", app.logout)
+	mux.HandleFunc("GET /", app.home)
+	mux.HandleFunc("GET /login", app.loginGet)
+	mux.HandleFunc("POST /login", app.loginPost)
+	mux.HandleFunc("GET /signup", app.signupGet)
+	mux.HandleFunc("POST /signup", app.signupPost)
+	mux.HandleFunc("GET /verify", app.verify)
+	mux.HandleFunc("GET /profile", app.profile)
+	mux.HandleFunc("POST /logout", app.logout)
+	mux.HandleFunc("POST /request-password-reset", app.requestPasswdReset)
 
 	srv := &http.Server{Addr: "0.0.0.0:8080", ErrorLog: errorLog, Handler: mux}
 	infoLog.Println("Starting server on 0.0.0.0:8080")

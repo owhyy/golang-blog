@@ -42,17 +42,6 @@ func (app *application) renderTemplate(w http.ResponseWriter, name string, tmpl 
 }
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
-	}
-
-	if r.Method != http.MethodGet {
-		w.Header().Set("Allow", http.MethodGet)
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	session, err := app.cookieStore.Get(r, "auth-session")
 	if err != nil {
 		app.errorLog.Println(err.Error())
@@ -68,17 +57,6 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) profile(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/profile" {
-		http.NotFound(w, r)
-		return
-	}
-
-	if r.Method != http.MethodGet {
-		w.Header().Set("Allow", http.MethodGet)
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	session, err := app.cookieStore.Get(r, "auth-session")
 	if err != nil {
 		app.errorLog.Println(err.Error())
@@ -107,12 +85,7 @@ func (app *application) profile(w http.ResponseWriter, r *http.Request) {
 	app.renderTemplate(w, "profile", profileTmpl, user)
 }
 
-func (app *application) login(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/login" {
-		http.NotFound(w, r)
-		return
-	}
-
+func (app *application) loginGet(w http.ResponseWriter, r *http.Request) {
 	session, err := app.cookieStore.Get(r, "auth-session")
 	if err != nil {
 		app.errorLog.Println(err.Error())
@@ -120,67 +93,58 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method == http.MethodGet {
-		if !session.IsNew || session.Values["userID"] != nil {
-			http.Redirect(w, r, "/profile", http.StatusSeeOther)
-			return
-		}
-		app.renderTemplate(w, "login", loginTmpl, nil)
+	if !session.IsNew || session.Values["userID"] != nil {
+		http.Redirect(w, r, "/profile", http.StatusSeeOther)
+		return
+	}
+	app.renderTemplate(w, "login", loginTmpl, nil)
+}
+
+func (app *application) loginPost(w http.ResponseWriter, r *http.Request) {
+	session, err := app.cookieStore.Get(r, "auth-session")
+	if err != nil {
+		app.errorLog.Println(err.Error())
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	if r.Method == http.MethodPost {
-		err := r.ParseForm()
-		if err != nil {
-			app.errorLog.Println(err.Error())
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
-
-		email := r.PostForm.Get("email")
-		password := r.PostForm.Get("password")
-
-		id, err := app.users.Authenticate(email, password)
-		if err != nil {
-			app.errorLog.Println(err.Error())
-			msg := "Authentication error"
-			if errors.Is(err, models.ErrInvalidCredentials) {
-				msg = "Invalid email or password"
-			}
-			w.Write([]byte(`<p style="color: red;">` + msg + "</p>"))
-			return
-		}
-
-		session.Values["userID"] = id
-		err = session.Save(r, w)
-		if err != nil {
-			app.errorLog.Println(err.Error())
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			return
-		}
-
-		app.infoLog.Printf("User logged in: %s", email)
-
-		w.Header().Set("HX-Redirect", "/profile")
-		w.WriteHeader(http.StatusOK)
+	err = r.ParseForm()
+	if err != nil {
+		app.errorLog.Println(err.Error())
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Allow", http.MethodGet+", "+http.MethodPost)
-	http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+	email := r.PostForm.Get("email")
+	password := r.PostForm.Get("password")
+
+	id, err := app.users.Authenticate(email, password)
+	if err != nil {
+		app.errorLog.Println(err.Error())
+		msg := "Authentication error"
+		if errors.Is(err, models.ErrInvalidCredentials) {
+			msg = "Invalid email or password"
+		}
+		w.Write([]byte(`<p style="color: red;">` + msg + "</p>"))
+		return
+	}
+
+	session.Values["userID"] = id
+	err = session.Save(r, w)
+	if err != nil {
+		app.errorLog.Println(err.Error())
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	app.infoLog.Printf("User logged in: %s", email)
+
+	w.Header().Set("HX-Redirect", "/profile")
+	w.WriteHeader(http.StatusOK)
+	return
 }
 
 func (app *application) logout(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/logout" {
-		http.NotFound(w, r)
-		return
-	}
-
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	session, err := app.cookieStore.Get(r, "auth-session")
 	if err != nil {
 		app.errorLog.Println(err)
@@ -200,90 +164,69 @@ func (app *application) logout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusSeeOther)
 }
 
-func (app *application) signup(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/signup" {
-		http.NotFound(w, r)
+func (app *application) signupGet(w http.ResponseWriter, r *http.Request) {
+	app.renderTemplate(w, "signup", signUpTmpl, nil)
+}
+
+func (app *application) signupPost(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		app.errorLog.Println(err.Error())
+		w.Write([]byte("Bad Request"))
 		return
 	}
 
-	if r.Method == http.MethodGet {
-		app.renderTemplate(w, "signup", signUpTmpl, nil)
+	email := r.PostForm.Get("email")
+	password := r.PostForm.Get("password")
+	confirmPassword := r.PostForm.Get("confirm_password")
+
+	if email == "" || password == "" {
+		w.Write([]byte("<p style='color: red;'>Email and password are required</p>"))
 		return
 	}
 
-	if r.Method == http.MethodPost {
-		err := r.ParseForm()
-		if err != nil {
-			app.errorLog.Println(err.Error())
-			w.Write([]byte("Bad Request"))
-			return
-		}
-
-		email := r.PostForm.Get("email")
-		password := r.PostForm.Get("password")
-		confirmPassword := r.PostForm.Get("confirm_password")
-
-		if email == "" || password == "" {
-			w.Write([]byte("<p style='color: red;'>Email and password are required</p>"))
-			return
-		}
-
-		const minEntropyBits = 1
-		err = passwordvalidator.Validate(password, minEntropyBits)
-		if err != nil {
-			app.errorLog.Println(err.Error())
-			w.Write([]byte("<p style='color: red;'>Error: " + err.Error() + "</p>"))
-			return
-		}
-
-		if password != confirmPassword {
-			w.Write([]byte("<p style='color: red;'>Passwords do not match</p>"))
-			return
-		}
-
-		userId, err := app.users.Create(email, password)
-		if err != nil {
-			app.errorLog.Println(err.Error())
-			var msg = "Failed to create account"
-			if errors.Is(err, models.ErrDuplicateEmail) {
-				msg = "An user with this email already exists"
-			}
-
-			w.Write([]byte("<p style='color: red;'>" + msg + "</p>"))
-			return
-		}
-
-		token, err := app.tokens.CreateEmailVerificationToken(userId)
-		if err != nil {
-			app.errorLog.Println(err.Error())
-		}
-		app.infoLog.Println("Token " + token + " created for " + email)
-		err = app.emailService.SendVerificationEmail(email, app.config.BaseURL, token)
-		// Should we display error to front-end or not?
-		if err != nil {
-			app.errorLog.Println("Failed to send verification email to " + email + err.Error())
-		}
-
-		w.Header().Set("HX-Redirect", "/login")
-		w.WriteHeader(http.StatusOK)
+	const minEntropyBits = 1
+	err = passwordvalidator.Validate(password, minEntropyBits)
+	if err != nil {
+		app.errorLog.Println(err.Error())
+		w.Write([]byte("<p style='color: red;'>Error: " + err.Error() + "</p>"))
 		return
 	}
 
-	w.Header().Set("Allow", http.MethodGet+", "+http.MethodPost)
-	http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+	if password != confirmPassword {
+		w.Write([]byte("<p style='color: red;'>Passwords do not match</p>"))
+		return
+	}
+
+	userId, err := app.users.Create(email, password)
+	if err != nil {
+		app.errorLog.Println(err.Error())
+		var msg = "Failed to create account"
+		if errors.Is(err, models.ErrDuplicateEmail) {
+			msg = "An user with this email already exists"
+		}
+
+		w.Write([]byte("<p style='color: red;'>" + msg + "</p>"))
+		return
+	}
+
+	token, err := app.tokens.CreateEmailVerificationToken(userId)
+	if err != nil {
+		app.errorLog.Println(err.Error())
+	}
+	app.infoLog.Println("Token " + token + " created for " + email)
+	err = app.emailService.SendVerificationEmail(email, app.config.BaseURL, token)
+	// Should we display error to front-end or not?
+	if err != nil {
+		app.errorLog.Println("Failed to send verification email to " + email + err.Error())
+	}
+
+	w.Header().Set("HX-Redirect", "/login")
+	w.WriteHeader(http.StatusOK)
+	return
 }
 
 func (app *application) requestPasswdReset(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/request-password-reset" {
-		http.NotFound(w, r)
-		return
-	}
-
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	session, err := app.cookieStore.Get(r, "auth-session")
 	if err != nil {
 		app.errorLog.Println(err.Error())
@@ -326,11 +269,6 @@ func (app *application) requestPasswdReset(w http.ResponseWriter, r *http.Reques
 
 func (app *application) verify(w http.ResponseWriter, r *http.Request) {
 	data := struct{ Error string }{}
-	if r.Method != http.MethodGet {
-		w.Header().Set("Allow", http.MethodGet)
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
 
 	ts, err := template.New("verify").Parse(verifyTmpl)
 	if err != nil {
