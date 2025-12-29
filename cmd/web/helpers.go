@@ -57,3 +57,11 @@ func (app *application) getAuthenticatedUser(r *http.Request) *models.User {
 	}
 	return user
 }
+
+func (app *application) renderHTMXSuccess(w http.ResponseWriter, msg string) {
+	w.Write([]byte(`<p class="pico-color-green-600">` + msg + "</p>"))
+}
+
+func (app *application) renderHTMXError(w http.ResponseWriter, msg string) {
+	w.Write([]byte(`<p class="pico-color-red-600">` + msg + "</p>"))
+}

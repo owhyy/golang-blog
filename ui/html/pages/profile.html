@@ -13,13 +13,16 @@
                 {{end}}
             </hgroup>
 
-            <form hx-post="/logout">
+            <form hx-post="/logout" hx-disabled-elt="find button">
                 <button type="submit">Logout</button>
             </form>
 
-            <form hx-post="/request-password-reset">
-                <button type="submit">Reset password</button>
+            <form hx-post="/request-password-reset" hx-target="#reset-feedback" hx-swap="innerHTML" hx-disabled-elt="find button">
+                <button type="submit">
+                    Reset password
+                </button>
             </form>
+            <div id="reset-feedback"></div>
         </article>
     {{end}}
 {{end}}

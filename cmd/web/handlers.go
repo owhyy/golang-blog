@@ -60,7 +60,7 @@ func (app *application) loginPost(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, models.ErrInvalidCredentials) {
 			msg = "Invalid email or password"
 		}
-		w.Write([]byte(`<p style="color: red;">` + msg + "</p>"))
+		app.renderHTMXError(w, msg)
 		return
 	}
 
@@ -107,7 +107,7 @@ func (app *application) signupPost(w http.ResponseWriter, r *http.Request) {
 	confirmPassword := r.PostForm.Get("confirm_password")
 
 	if email == "" || password == "" {
-		w.Write([]byte("<p style='color: red;'>Email and password are required</p>"))
+		app.renderHTMXError(w, "Email and password are required")
 		return
 	}
 
@@ -115,12 +115,12 @@ func (app *application) signupPost(w http.ResponseWriter, r *http.Request) {
 	err = passwordvalidator.Validate(password, minEntropyBits)
 	if err != nil {
 		app.errorLog.Println(err.Error())
-		w.Write([]byte("<p style='color: red;'>Error: " + err.Error() + "</p>"))
+		app.renderHTMXError(w, err.Error())
 		return
 	}
 
 	if password != confirmPassword {
-		w.Write([]byte("<p style='color: red;'>Passwords do not match</p>"))
+		app.renderHTMXError(w, "Passwords do not match")
 		return
 	}
 
@@ -132,7 +132,7 @@ func (app *application) signupPost(w http.ResponseWriter, r *http.Request) {
 			msg = "An user with this email already exists"
 		}
 
-		w.Write([]byte("<p style='color: red;'>" + msg + "</p>"))
+		app.renderHTMXError(w, msg)
 		return
 	}
 
@@ -163,10 +163,12 @@ func (app *application) requestPasswdReset(w http.ResponseWriter, r *http.Reques
 	err = app.emailService.SendResetPasswordEmail(user.Email, app.config.BaseURL, token)
 	if err != nil {
 		app.errorLog.Println(err.Error())
+		app.renderHTMXError(w, "Failed to send password reset email. Try again later.")
+		return
 	}
 
-	w.Header().Set("HX-Redirect", "/")
-	w.WriteHeader(http.StatusSeeOther)
+	app.renderHTMXSuccess(w, "Password reset requested. Check your email for the reset link.")
+	return
 }
 
 func (app *application) verify(w http.ResponseWriter, r *http.Request) {
