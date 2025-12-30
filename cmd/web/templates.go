@@ -35,4 +35,5 @@ type templateData struct {
 	Error           string
 	Token           string
 	IsAuthenticated bool
+	CurrentPage     string
 }

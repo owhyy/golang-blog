@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"owhyy/simple-auth/internal/models"
+	"strings"
 )
 
 func (app *application) render(w http.ResponseWriter, r *http.Request, status int, page string, data templateData) {
@@ -14,6 +15,10 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 		return
 	}
 	w.WriteHeader(status)
+
+	prefix, _, _ := strings.Cut(page, ".")
+	data.CurrentPage = prefix
+
 	err := ts.ExecuteTemplate(w, "base", data)
 	if err != nil {
 		app.serverError(w, r, err)
