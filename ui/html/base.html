@@ -10,8 +10,11 @@
         <title>{{template "title" .}}</title>
     </head>
     <body>
-    <main class="container" style="display: flex; align-items: center; min-height: 100vh;">
-        {{template "main" .}}
+    <main class="container">
+        {{ template "nav" . }}
+        <div style="display: flex; align-items: center; min-height: 100vh;">
+        {{ template "main" . }}
+        </div>
     </main>
     </body>
     </html>

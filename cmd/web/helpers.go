@@ -65,3 +65,9 @@ func (app *application) renderHTMXSuccess(w http.ResponseWriter, msg string) {
 func (app *application) renderHTMXError(w http.ResponseWriter, msg string) {
 	w.Write([]byte(`<p class="pico-color-red-600">` + msg + "</p>"))
 }
+
+func (app *application) newTemplateData(r *http.Request) templateData {
+	return templateData{
+		IsAuthenticated: app.isAuthenticated(r),
+	}
+}

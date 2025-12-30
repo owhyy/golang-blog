@@ -14,12 +14,13 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/profile", http.StatusSeeOther)
 		return
 	}
-	app.render(w, r, http.StatusOK, "home.html", templateData{})
+	app.render(w, r, http.StatusOK, "home.html", app.newTemplateData(r))
 }
 
 func (app *application) profile(w http.ResponseWriter, r *http.Request) {
 	user := app.getAuthenticatedUser(r)
-	data := templateData{User: *user}
+	data := app.newTemplateData(r)
+	data.User = *user
 	app.render(w, r, http.StatusOK, "profile.html", data)
 }
 
@@ -29,7 +30,7 @@ func (app *application) loginGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.render(w, r, http.StatusOK, "login.html", templateData{})
+	app.render(w, r, http.StatusOK, "login.html", app.newTemplateData(r))
 }
 
 func (app *application) loginPost(w http.ResponseWriter, r *http.Request) {
@@ -92,7 +93,7 @@ func (app *application) logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) signupGet(w http.ResponseWriter, r *http.Request) {
-	app.render(w, r, http.StatusOK, "signup.html", templateData{})
+	app.render(w, r, http.StatusOK, "signup.html", app.newTemplateData(r))
 }
 
 func (app *application) signupPost(w http.ResponseWriter, r *http.Request) {
@@ -212,7 +213,7 @@ func (app *application) requestPasswdResetPost(w http.ResponseWriter, r *http.Re
 }
 
 func (app *application) resetPasswordGet(w http.ResponseWriter, r *http.Request) {
-	data := templateData{}
+	data := app.newTemplateData(r)
 	token := r.URL.Query().Get("token")
 	if token == "" {
 		data.Error = "Verification link is invalid. Try requesting a new password reset"
@@ -279,7 +280,7 @@ func (app *application) resetPasswordPost(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application) verify(w http.ResponseWriter, r *http.Request) {
-	data := templateData{}
+	data := app.newTemplateData(r)
 
 	token := r.URL.Query().Get("token")
 	if token == "" {

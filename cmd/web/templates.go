@@ -18,6 +18,7 @@ func newTemplateCache() (map[string]*template.Template, error) {
 		name := filepath.Base(page)
 		patterns := []string{
 			"html/base.html",
+			"html/partials/*.html",
 			page,
 		}
 		ts, err := template.New(name).ParseFS(ui.Files, patterns...)
@@ -30,7 +31,8 @@ func newTemplateCache() (map[string]*template.Template, error) {
 }
 
 type templateData struct {
-	User  models.User
-	Error string
-	Token string
+	User            models.User
+	Error           string
+	Token           string
+	IsAuthenticated bool
 }
