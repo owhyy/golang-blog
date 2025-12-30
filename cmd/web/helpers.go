@@ -51,7 +51,7 @@ func (app *application) getAuthenticatedUser(r *http.Request) *models.User {
 	if err != nil {
 		return nil
 	}
-	id, ok := session.Values["userID"].(int64)
+	id, ok := session.Values["userID"].(uint)
 	if !ok || session.IsNew {
 		return nil
 	}

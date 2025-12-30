@@ -22,8 +22,8 @@ const (
 )
 
 type Token struct {
-	ID        int64
-	UserID    int64
+	ID        uint
+	UserID    uint
 	Token     string
 	ExpiresAt time.Time
 	CreatedAt time.Time
@@ -43,7 +43,7 @@ func generateRandomToken(length int) (string, error) {
 	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(b), nil
 }
 
-func (m *TokenModel) createToken(userID int64, purpose TokenPurpose, length int, ttl time.Duration) (string, error) {
+func (m *TokenModel) createToken(userID uint, purpose TokenPurpose, length int, ttl time.Duration) (string, error) {
 	token, err := generateRandomToken(length)
 	if err != nil {
 		return "", err
@@ -62,11 +62,11 @@ func (m *TokenModel) createToken(userID int64, purpose TokenPurpose, length int,
 	return token, nil
 }
 
-func (m *TokenModel) CreateEmailVerificationToken(userID int64) (string, error) {
+func (m *TokenModel) CreateEmailVerificationToken(userID uint) (string, error) {
 	return m.createToken(userID, EmailVerifyPurpose, emailVerificationTokenLength, emailVerificationTokenTTL)
 }
 
-func (m *TokenModel) CreatePasswordResetToken(userID int64) (string, error) {
+func (m *TokenModel) CreatePasswordResetToken(userID uint) (string, error) {
 	return m.createToken(userID, PasswordResetPurpose, passwordResetTokenLength, passwordResetTokenTTL)
 }
 
@@ -83,9 +83,9 @@ func (m *TokenModel) ExistsValid(purpose TokenPurpose, token string) (bool, erro
 	return exists, nil
 }
 
-func (m *TokenModel) Consume(purpose TokenPurpose, token string) (int64, error) {
+func (m *TokenModel) Consume(purpose TokenPurpose, token string) (uint, error) {
 	var (
-		userID    int64
+		userID    uint
 		expiresAt time.Time
 		usedAt    sql.NullTime
 	)

@@ -13,7 +13,7 @@ var (
 )
 
 type User struct {
-	ID            int64
+	ID            uint
 	Email         string
 	PasswordHash  string
 	EmailVerified bool
@@ -24,7 +24,7 @@ type UserModel struct {
 	DB *DB
 }
 
-func (m *UserModel) SetPassword(id int64, password string) error {
+func (m *UserModel) SetPassword(id uint, password string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -38,7 +38,7 @@ func (m *UserModel) SetPassword(id int64, password string) error {
 	return nil
 }
 
-func (m *UserModel) Create(email, password string) (int64, error) {
+func (m *UserModel) Create(email, password string) (uint, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return 0, err
@@ -60,11 +60,11 @@ func (m *UserModel) Create(email, password string) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return id, nil
+	return uint(id), nil
 }
 
-func (m *UserModel) Authenticate(email, password string) (int64, error) {
-	var id int64
+func (m *UserModel) Authenticate(email, password string) (uint, error) {
+	var id uint
 	var passwordHash string
 
 	err := m.DB.QueryRow(
@@ -97,7 +97,7 @@ func (m *UserModel) EmailExists(email string) (bool, error) {
 	return exists, err
 }
 
-func (m *UserModel) VerifyEmailByID(id int64) error {
+func (m *UserModel) VerifyEmailByID(id uint) error {
 	_, err := m.DB.Exec(
 		`UPDATE users SET email_verified = 1 WHERE id = ?`,
 		id,
@@ -105,7 +105,7 @@ func (m *UserModel) VerifyEmailByID(id int64) error {
 	return err
 }
 
-func (m *UserModel) GetEmailByID(id int64) (string, error) {
+func (m *UserModel) GetEmailByID(id uint) (string, error) {
 	var email string
 	err := m.DB.QueryRow(
 		"SELECT email FROM users WHERE id = ?",
@@ -115,7 +115,7 @@ func (m *UserModel) GetEmailByID(id int64) (string, error) {
 	return email, err
 }
 
-func (m *UserModel) GetByID(id int64) (*User, error) {
+func (m *UserModel) GetByID(id uint) (*User, error) {
 	user := &User{}
 	err := m.DB.QueryRow(
 		"SELECT id, email, email_verified, created_at FROM users WHERE id = ?",
@@ -143,7 +143,7 @@ func (m *UserModel) GetByEmail(email string) (*User, error) {
 	return user, err
 }
 
-func (m *UserModel) CanCreatePasswordRequest(id int64) (bool, error) {
+func (m *UserModel) CanCreatePasswordRequest(id uint) (bool, error) {
 	var count int
 	err := m.DB.QueryRow(
 		"SELECT count(1) FROM tokens WHERE user_id = ? AND DATE(created_at) = DATE('now')",
