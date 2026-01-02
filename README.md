@@ -1,6 +1,6 @@
-# golang-auth
+# golang-blog
 
-Simple &amp; secure POC authentication page
+Simple blog application featuring user auth and blog post CRUD
 
 ## Configuration
 
@@ -17,8 +17,8 @@ go run ./cmd/web
 - Dockerfile (recommended):
 
 ```
-docker build -t go-auth-app .
-docker run --env-file .env --rm -p 8080:8080 go-auth-app:latest
+docker build -t go-blog-app .
+docker run --env-file .env --rm -p 8080:8080 go-blog-app:latest
 ```
 
 Accessing localhost:8080 should open the home page.
