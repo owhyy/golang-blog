@@ -6,21 +6,25 @@
             <p>Create a new account</p>
         </hgroup>
 
-        <div id="error-message"></div>
-
-        <form hx-post="/signup" hx-swap="innerHTML" hx-target="#error-message">
-            <label for="email">
+        <form hx-post="/signup" hx-swap="none" hx-disabled-elt="find button">
+            <label for="username" id="username-input">
+                Username
+                <input id="username" name="username" required minlength="3" maxlength="20" type="text" pattern="^[a-zA-Z0-9_]{3,20}$" title="Only letters, numbers and underscores allowed">
+                <small>Only letters, numbers and underscores allowed</small>		
+            </label>	    
+	  
+            <label for="email" id="email-input">
                 Email
                 <input id="email" name="email" required type="email">
             </label>
 
-            <label for="password">
+            <label for="password" id="password-input">
                 Password
                 <input id="password" minlength="8" name="password" required type="password">
                 <small>Must be at least 8 characters long</small>
             </label>
 
-            <label for="confirm-password">
+            <label for="confirm-password" id="confirm-password-input">
                 Confirm Password
                 <input id="confirm-password" minlength="8" name="confirm_password" required type="password">
             </label>

@@ -9,11 +9,13 @@ import (
 
 var (
 	ErrDuplicateEmail     = errors.New("email already exists")
+	ErrDuplicateUsername  = errors.New("username already exists")
 	ErrInvalidCredentials = errors.New("invalid email or password")
 )
 
 type User struct {
 	ID            uint
+	Username      string
 	Email         string
 	PasswordHash  string
 	EmailVerified bool
@@ -38,20 +40,23 @@ func (m *UserModel) SetPassword(id uint, password string) error {
 	return nil
 }
 
-func (m *UserModel) Create(email, password string) (uint, error) {
+func (m *UserModel) Create(email, username, password string) (uint, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return 0, err
 	}
 
 	result, err := m.DB.Exec(
-		"INSERT INTO users (email, password_hash) VALUES (?, ?)",
-		email, string(hashedPassword),
+		"INSERT INTO users (email, username, password_hash) VALUES (?, ?, ?)",
+		email, username, string(hashedPassword),
 	)
 
 	if err != nil {
 		if err.Error() == "UNIQUE constraint failed: users.email" {
 			return 0, ErrDuplicateEmail
+		}
+		if err.Error() == "UNIQUE constraint failed: users.username" {
+			return 0, ErrDuplicateUsername
 		}
 		return 0, err
 	}
@@ -85,16 +90,6 @@ func (m *UserModel) Authenticate(email, password string) (uint, error) {
 	}
 
 	return id, nil
-}
-
-func (m *UserModel) EmailExists(email string) (bool, error) {
-	var exists bool
-	err := m.DB.QueryRow(
-		"SELECT EXISTS(SELECT 1 FROM users WHERE email = ?)",
-		email,
-	).Scan(&exists)
-
-	return exists, err
 }
 
 func (m *UserModel) VerifyEmailByID(id uint) error {

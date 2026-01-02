@@ -9,6 +9,7 @@ import (
 	"github.com/brianvoe/gofakeit/v7"
 	slug2 "github.com/gosimple/slug"
 	_ "github.com/mattn/go-sqlite3"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type DB struct {
@@ -28,6 +29,7 @@ func Migrate(dataSourceName string) (*DB, error) {
 	createTablesSQL := `
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
     email_verified INTEGER NOT NULL DEFAULT 0,
@@ -89,18 +91,21 @@ func Populate(db *DB, userCount int, postCount int) error {
 	userIDs := make([]int64, 0, userCount)
 
 	userQuery := `
-		INSERT INTO users (email, password_hash, email_verified)
+		INSERT INTO users (email, username, password_hash, email_verified)
 		VALUES %s
 	`
 
 	userValues := make([]string, 0, userCount)
-	userArgs := make([]any, 0, userCount*3)
+	userArgs := make([]any, 0, userCount*4)
 
-	for i := 0; i < userCount; i++ {
-		userValues = append(userValues, "(?, ?, ?)")
+	for range userCount {
+		pass := gofakeit.Password(true, true, true, true, false, 12)
+		hashedPass, _ := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+		userValues = append(userValues, "(?, ?, ?, ?)")
 		userArgs = append(userArgs,
 			gofakeit.Email(),
-			gofakeit.Password(true, true, true, true, false, 12),
+			gofakeit.Username(),
+			hashedPass,
 			1,
 		)
 	}
@@ -118,7 +123,7 @@ func Populate(db *DB, userCount int, postCount int) error {
 		return err
 	}
 
-	for i := 0; i < userCount; i++ {
+	for i := range userCount {
 		userIDs = append(userIDs, firstID+int64(i))
 	}
 

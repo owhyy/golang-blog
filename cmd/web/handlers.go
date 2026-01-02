@@ -4,8 +4,11 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"html"
 	"net/http"
+	"net/mail"
 	"owhyy/simple-auth/internal/models"
+	"regexp"
 	"strings"
 	"time"
 
@@ -13,13 +16,15 @@ import (
 	passwordvalidator "github.com/wagslane/go-password-validator"
 )
 
+var usernameRegex = regexp.MustCompile(`^[a-zA-Z0-9_]{3,20}$`)
+
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	posts, err := app.posts.GetPublished(20)
 	if err != nil {
 		app.serverError(w, r, err)
 		return
 	}
-	data := app.newTemplateData(r)	
+	data := app.newTemplateData(r)
 	data.Posts = posts
 	app.render(w, r, http.StatusOK, "home.html", data)
 }
@@ -109,37 +114,85 @@ func (app *application) signupPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	username := r.PostForm.Get("username")
 	email := r.PostForm.Get("email")
 	password := r.PostForm.Get("password")
 	confirmPassword := r.PostForm.Get("confirm_password")
 
-	if email == "" || password == "" {
-		app.renderHTMXError(w, "Email and password are required")
+	if username == "" || email == "" || password == "" {
+		app.clientError(w, http.StatusBadRequest)
 		return
 	}
 
-	const minEntropyBits = 1
+	if !usernameRegex.MatchString(username) {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	_, err = mail.ParseAddress(email)
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	const minEntropyBits = 50
 	err = passwordvalidator.Validate(password, minEntropyBits)
 	if err != nil {
-		app.errorLog.Println(err.Error())
-		app.renderHTMXError(w, err.Error())
+		fmt.Fprintf(w, `
+            <label for="password" id="password-input" hx-swap-oob="true" x-data="{ error: true }">
+                Password
+                <input id="password" minlength="8" name="password" required type="password" :aria-invalid="error" @input="error = false">
+            </label>
+
+            <label for="confirm-password" id="confirm-password-input" hx-swap-oob="true" x-data="{ error: true }">
+                Confirm Password
+                <input id="confirm-password" minlength="8" name="confirm_password" required type="password" :aria-invalid="error" @input="error = false">
+                <small x-show="error">Error: %s</small>
+            </label>
+`, err.Error())
 		return
 	}
 
 	if password != confirmPassword {
-		app.renderHTMXError(w, "Passwords do not match")
+		w.Write([]byte(`
+            <label for="password" id="password-input" hx-swap-oob="true" x-data="{error: true}">
+                Password
+                <input id="password" minlength="8" name="password" required type="password" :aria-invalid="error" @input="error = false">
+            </label>
+
+            <label for="confirm-password" id="confirm-password-input" hx-swap-oob="true" x-data="{ error: true }">
+                Confirm Password
+                <input id="confirm-password" minlength="8" name="confirm_password" required type="password" @input="error = false" :aria-invalid="error">
+                <small x-show="error">Passwords must match</small>
+            </label>
+`))
 		return
 	}
 
-	userId, err := app.users.Create(email, password)
+	userId, err := app.users.Create(email, username, password)
 	if err != nil {
-		app.errorLog.Println(err.Error())
-		var msg = "Failed to create account"
 		if errors.Is(err, models.ErrDuplicateEmail) {
-			msg = "An user with this email already exists"
+			fmt.Fprintf(w,`
+            <label id="email-input" for="email" hx-swap-oob="true" x-data="{ error: true }">
+                Email
+                <input id="email" name="email" required type="email" :aria-invalid="error" value="%s" @input="error = false">
+                <small x-show="error">An user with this email already exists</small>
+            </label>`, html.EscapeString(email))
+			return
 		}
 
-		app.renderHTMXError(w, msg)
+		if errors.Is(err, models.ErrDuplicateUsername) {
+			fmt.Fprintf(w, `
+            <label id="username-input" for="username" hx-swap-oob="true" x-data="{ error: true }">
+                Username
+                <input id="username" name="username" required minlength="3" maxlength="20" type="text" pattern="^[a-zA-Z0-9_]{3,20}$" title="Only letters, numbers and underscores allowed" value="%s" :aria-invalid="error"@input="error = false" >
+                <small x-show="error">An user with this username already exists</small>		
+            </label>`, html.EscapeString(username))
+			return
+		}
+
+		app.errorLog.Println(err)
+		app.clientError(w, http.StatusBadRequest)
 		return
 	}
 
@@ -150,13 +203,14 @@ func (app *application) signupPost(w http.ResponseWriter, r *http.Request) {
 	app.infoLog.Println("Token " + token + " created for " + email)
 	err = app.emailService.SendVerificationEmail(email, app.config.BaseURL, token)
 	// Should we display error to front-end or not?
+	// In a real-world app, we'd probably log this and
+	// retry without the user knowing about it
 	if err != nil {
-		app.errorLog.Println("Failed to send verification email to " + email + err.Error())
+		app.errorLog.Printf("Failed to send verification email to %s. Error %s", email, err.Error())
 	}
 
 	w.Header().Set("HX-Redirect", "/login")
 	w.WriteHeader(http.StatusOK)
-	return
 }
 
 func (app *application) requestPasswdResetGet(w http.ResponseWriter, r *http.Request) {
@@ -208,9 +262,6 @@ func (app *application) requestPasswdResetPost(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// This should be done asynchronously, because
-	// right now it is possible to tell if an email exists
-	// or not by looking at how long the request takes
 	err = app.emailService.SendResetPasswordEmail(user.Email, app.config.BaseURL, token)
 	if err != nil {
 		app.errorLog.Println(err.Error())
@@ -347,8 +398,8 @@ func (app *application) viewPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if post.Status == models.Draft && (!app.isAuthenticated(r) || post.AuthorID != app.getAuthenticatedUser(r).ID) {
-			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-			return		
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
 	}
 
 	data := app.newTemplateData(r)
@@ -431,11 +482,10 @@ func (app *application) myPosts(w http.ResponseWriter, r *http.Request) {
 	posts, err := app.posts.GetByAuthorID(app.getAuthenticatedUser(r).ID, 20)
 	app.infoLog.Println(app.getAuthenticatedUser(r).ID)
 	if err != nil {
-		app.serverError(w,r,err)
+		app.serverError(w, r, err)
 		return
 	}
-	data := app.newTemplateData(r)	
+	data := app.newTemplateData(r)
 	data.Posts = posts
-	app.render(w, r, http.StatusOK, "my_posts.html", data)	
+	app.render(w, r, http.StatusOK, "my_posts.html", data)
 }
-
