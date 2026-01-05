@@ -1,26 +1,25 @@
 {{define "title"}} Profile {{end}}
 {{define "main"}}
-    {{with .User}}
-        <article style="width: 100%; max-width: 500px; margin: 0 auto;">
-            <hgroup>
-                <h1>Hello, {{.Email}}</h1>
-                <hr/>
-                {{ if .EmailVerified}}
-                    <p>Your email is verified</p>
-                {{else}}
-                    <p>Your email is <strong>not verified</strong>. Check your email for instructions on how to do it
-                    </p>
-                    <p>No email? <a style="cursor: pointer" role="link" hx-post="/resend-verify-email" hx-disabled-elt="this">Resend
-                            verification email</a></p>
-                {{end}}
-            </hgroup>
+{{with .User}}
+<section>
+        <hgroup style="text-align: center; align-items: flex-center;">
+  <h1 style="margin-bottom: 1rem;">Hello, <em>{{.Username}}</em></h1>
+  {{ if .EmailVerified}}
+  <p>Your email is verified</p>
+  {{else}}
+  <p>Your email is <strong>not verified</strong>. Check your email for instructions on how to do it
+  </p>
+  <p>Didn't receive it? <a style="cursor: pointer" role="link" hx-post="/resend-verify-email" hx-disabled-elt="this">Resend
+      verification email</a></p>
+  {{end}}
+</hgroup>
 
-            {{/*            <form hx-post="/request-password-reset" hx-target="#reset-feedback" hx-swap="innerHTML" hx-disabled-elt="find button">*/}}
-            {{/*                <button type="submit">*/}}
-            {{/*                    Reset password*/}}
-            {{/*                </button>*/}}
-            {{/*            </form>*/}}
-            {{/*            <div id="reset-password-response"></div>*/}}
-        </article>
-    {{end}}
+{{/*            <form hx-post="/request-password-reset" hx-target="#reset-feedback" hx-swap="innerHTML" hx-disabled-elt="find button">*/}}
+  {{/*                <button type="submit">*/}}
+    {{/*                    Reset password*/}}
+    {{/*                </button>*/}}
+  {{/*            </form>*/}}
+{{/*            <div id="reset-password-response"></div>*/}}
+{{end}}
+</section>
 {{end}}
