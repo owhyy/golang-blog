@@ -6,6 +6,7 @@
         </hgroup>
 
         {{if .Posts}}
+	{{ template "paginator" . }}
             <div class="grid" style="grid-template-columns: 1fr 1fr 1fr;">
                 {{range .Posts}}
                     <article>

@@ -55,7 +55,7 @@ func (m *PostModel) GetPublished(perPage, currentPage int) ([]Post, error) {
                 OFFSET $2
 	`
 
-	rows, err := m.DB.Query(query, perPage, perPage*currentPage)
+	rows, err := m.DB.Query(query, perPage, (currentPage-1)*perPage)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func (m *PostModel) GetBySlug(slug string) (*Post, error) {
 	return &p, nil
 }
 
-func (m *PostModel) GetByAuthorID(authorID, limit uint) ([]Post, error) {
+func (m *PostModel) GetByAuthorID(authorID uint, limit, currentPage int) ([]Post, error) {
 	query := `
 		SELECT
 			id,
@@ -157,9 +157,10 @@ func (m *PostModel) GetByAuthorID(authorID, limit uint) ([]Post, error) {
 		WHERE author_id = $1
 		ORDER BY published_at DESC
 		LIMIT $2
+                OFFSET $3
 	`
 
-	rows, err := m.DB.Query(query, authorID, limit)
+	rows, err := m.DB.Query(query, authorID, limit, (currentPage-1)*limit)
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +245,7 @@ func (m *PostModel) Create(p *Post) error {
 	return nil
 }
 
-func (m *PostModel) CountPublished() (uint, error) {
+func (m *PostModel) CountPublished() (int, error) {
 	var count uint
 	query := `SELECT COUNT(1) FROM posts WHERE status = $1`
 
@@ -253,5 +254,17 @@ func (m *PostModel) CountPublished() (uint, error) {
 		return 0, err
 	}
 
-	return count, nil
+	return int(count), nil
+}
+
+func (m *PostModel) CountForUser(author_id uint) (int, error) {
+	var count uint
+	query := `SELECT COUNT(1) FROM posts WHERE author_id = $1`
+
+	err := m.DB.QueryRow(query, author_id).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return int(count), nil
 }

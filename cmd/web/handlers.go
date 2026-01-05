@@ -29,8 +29,11 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, r, err)
 		return
 	}
-	pagination.TotalPages = int(total) / pagination.PerPage
-	
+	if total < pagination.PerPage {
+		total = pagination.PerPage
+	}
+	pagination.TotalPages = total / pagination.PerPage
+
 	posts, err := app.posts.GetPublished(pagination.PerPage, pagination.CurrentPage)
 	if err != nil {
 		app.serverError(w, r, err)
@@ -39,7 +42,6 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
 	data := app.newTemplateData(r)
 
-	
 	data.Pagination = *pagination
 	data.Posts = posts
 	app.render(w, r, http.StatusOK, "home.html", data)
@@ -494,13 +496,31 @@ func (app *application) postCreatePost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) myPosts(w http.ResponseWriter, r *http.Request) {
-	posts, err := app.posts.GetByAuthorID(app.getAuthenticatedUser(r).ID, 20)
-	app.infoLog.Println(app.getAuthenticatedUser(r).ID)
+	pagination, err := app.newPagination(r)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+	user := app.getAuthenticatedUser(r)
+	total, err := app.posts.CountForUser(user.ID)
+	app.infoLog.Println(total)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+        if total < pagination.PerPage {
+		total = pagination.PerPage
+	}
+	pagination.TotalPages = total / pagination.PerPage
+	app.infoLog.Println(pagination)	
+
+	posts, err := app.posts.GetByAuthorID(user.ID, pagination.PerPage, pagination.CurrentPage)
 	if err != nil {
 		app.serverError(w, r, err)
 		return
 	}
 	data := app.newTemplateData(r)
 	data.Posts = posts
+	data.Pagination = *pagination
 	app.render(w, r, http.StatusOK, "my_posts.html", data)
 }
