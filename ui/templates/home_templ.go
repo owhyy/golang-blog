@@ -42,7 +42,7 @@ func Home(posts []models.Post, pagination types.PaginationData, searchQuery stri
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(searchQuery)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/home.templ`, Line: 20, Col: 26}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/home.templ`, Line: 16, Col: 90}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -70,7 +70,7 @@ func Home(posts []models.Post, pagination types.PaginationData, searchQuery stri
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(searchQuery)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/home.templ`, Line: 31, Col: 46}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/home.templ`, Line: 26, Col: 44}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -98,7 +98,7 @@ func Home(posts []models.Post, pagination types.PaginationData, searchQuery stri
 				var templ_7745c5c3_Var4 templ.SafeURL
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinURLErrs(fmt.Sprintf("/posts/view/%s", post.Slug))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/home.templ`, Line: 40, Col: 57}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/home.templ`, Line: 35, Col: 54}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -111,7 +111,7 @@ func Home(posts []models.Post, pagination types.PaginationData, searchQuery stri
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(post.Title)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/home.templ`, Line: 41, Col: 20}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/home.templ`, Line: 36, Col: 17}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -129,7 +129,7 @@ func Home(posts []models.Post, pagination types.PaginationData, searchQuery stri
 					var templ_7745c5c3_Var6 string
 					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(post.Excerpt)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/home.templ`, Line: 45, Col: 24}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/home.templ`, Line: 40, Col: 20}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 					if templ_7745c5c3_Err != nil {
@@ -148,7 +148,7 @@ func Home(posts []models.Post, pagination types.PaginationData, searchQuery stri
 					var templ_7745c5c3_Var7 string
 					templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(*post.FeaturedImage)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/home.templ`, Line: 48, Col: 48}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/home.templ`, Line: 43, Col: 44}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 					if templ_7745c5c3_Err != nil {
@@ -167,7 +167,7 @@ func Home(posts []models.Post, pagination types.PaginationData, searchQuery stri
 					var templ_7745c5c3_Var8 string
 					templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(post.PublishedAt.Format("Jan 2, 2006"))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/home.templ`, Line: 52, Col: 61}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/home.templ`, Line: 47, Col: 57}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 					if templ_7745c5c3_Err != nil {
@@ -200,7 +200,7 @@ func Home(posts []models.Post, pagination types.PaginationData, searchQuery stri
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(searchQuery)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/home.templ`, Line: 61, Col: 54}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/home.templ`, Line: 56, Col: 51}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
