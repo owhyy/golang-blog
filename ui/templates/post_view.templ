@@ -5,8 +5,8 @@ import (
 	"owhyy/simple-auth/internal/models"
 )
 
-templ PostView(post models.Post) {
-	<section style="margin-top: 2rem;">
+templ PostView(post models.Post, isAuthenticated bool, authenticatedUser *models.User) {
+	<section style="margin-top: 2rem;" id="post">
 		<hgroup style="text-align: center; margin-bottom: 2rem;">
 			<h1>{ post.Title }</h1>
 			<p>
@@ -36,6 +36,17 @@ templ PostView(post models.Post) {
 			</small>
 		</p>
 		<footer style="margin-top: 3rem; text-align: center;">
+			if isAuthenticated && authenticatedUser.ID == post.AuthorID {
+				if post.Status == models.Draft {
+					<a hx-post={fmt.Sprintf("/posts/%d/publish", post.ID)} hx-target="#post" role="button" class="primary" hx-disabled-elt="find button">
+						Publish
+					</a>
+				} else {
+					<a hx-post={fmt.Sprintf("/posts/%d/unpublish", post.ID)} hx-target="#post" role="button" class="primary" hx-disabled-elt="find button">
+						Convert to draft
+					</a>
+				}
+			}
 			<a href="/" role="button" class="secondary">
 				← Back to posts
 			</a>

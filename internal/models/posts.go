@@ -268,3 +268,61 @@ func (m *PostModel) CountForUser(author_id uint) (int, error) {
 
 	return int(count), nil
 }
+
+func (m *PostModel) GetByID(id uint) (*Post, error) {
+	query := `
+		SELECT
+			p.id,
+			p.title,
+			p.slug,
+			p.content,
+			p.excerpt,
+			p.author_id,
+			u.username,
+			p.status,
+			p.published_at,
+			p.created_at,
+			p.updated_at,
+			p.featured_image
+		FROM posts p JOIN users u on p.author_id = u.id
+		WHERE p.id = $1
+		LIMIT 1
+	`
+
+	var p Post
+
+	err := m.DB.QueryRow(query, id).Scan(
+		&p.ID,
+		&p.Title,
+		&p.Slug,
+		&p.Content,
+		&p.Excerpt,
+		&p.AuthorID,
+		&p.AuthorUsername,
+		&p.Status,
+		&p.PublishedAt,
+		&p.CreatedAt,
+		&p.UpdatedAt,
+		&p.FeaturedImage,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrRecordNotFound
+		}
+		return nil, err
+	}
+
+	return &p, nil
+}
+
+func (m *PostModel) UpdateStatus(id uint, status PostStatus, publishedAt *time.Time) error {
+	query := `
+		UPDATE posts
+		SET status = $1, published_at = $2, updated_at = CURRENT_TIMESTAMP
+		WHERE id = $3
+	`
+
+	_, err := m.DB.Exec(query, status, publishedAt, id)
+	return err
+}

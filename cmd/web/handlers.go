@@ -10,6 +10,7 @@ import (
 	"owhyy/simple-auth/internal/models"
 	"owhyy/simple-auth/ui/templates"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -405,12 +406,112 @@ func (app *application) viewPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if post.Status == models.Draft && (!app.isAuthenticated(r) || post.AuthorID != app.getAuthenticatedUser(r).ID) {
+	user := app.getAuthenticatedUser(r)
+	if post.Status == models.Draft && (!app.isAuthenticated(r) || user == nil || post.AuthorID != user.ID) {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
 
-	app.render(w, r, http.StatusOK, post.Title, templates.PostView(*post))
+	app.render(w, r, http.StatusOK, post.Title, templates.PostView(*post, app.isAuthenticated(r), user))
+}
+
+func (app *application) publishPost(w http.ResponseWriter, r *http.Request) {
+	user := app.getAuthenticatedUser(r)
+	if user == nil {
+		app.clientError(w, http.StatusUnauthorized)
+		return
+	}
+
+	idStr := r.PathValue("id")
+	postID, err := strconv.Atoi(idStr)
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	post, err := app.posts.GetByID(uint(postID))
+	if err != nil {
+		if errors.Is(err, models.ErrRecordNotFound) {
+			app.clientError(w, http.StatusNotFound)
+			return
+		}
+		app.serverError(w, r, err)
+		return
+	}
+
+	if post.AuthorID != user.ID {
+		app.clientError(w, http.StatusForbidden)
+		return
+	}
+
+	if post.Status == models.Published {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	now := time.Now()
+	err = app.posts.UpdateStatus(uint(postID), models.Published, &now)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	updatedPost, err := app.posts.GetByID(uint(postID))
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	templates.PostView(*updatedPost, true, user).Render(r.Context(), w)
+}
+
+func (app *application) unpublishPost(w http.ResponseWriter, r *http.Request) {
+	user := app.getAuthenticatedUser(r)
+	if user == nil {
+		app.clientError(w, http.StatusUnauthorized)
+		return
+	}
+
+	idStr := r.PathValue("id")
+	postID, err := strconv.Atoi(idStr)
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	post, err := app.posts.GetByID(uint(postID))
+	if err != nil {
+		if errors.Is(err, models.ErrRecordNotFound) {
+			app.clientError(w, http.StatusNotFound)
+			return
+		}
+		app.serverError(w, r, err)
+		return
+	}
+
+	if post.AuthorID != user.ID {
+		app.clientError(w, http.StatusForbidden)
+		return
+	}
+
+	if post.Status == models.Draft {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	err = app.posts.UpdateStatus(uint(postID), models.Draft, nil)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	updatedPost, err := app.posts.GetByID(uint(postID))
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	templates.PostView(*updatedPost, true, user).Render(r.Context(), w)
 }
 
 func (app *application) postCreateGet(w http.ResponseWriter, r *http.Request) {
