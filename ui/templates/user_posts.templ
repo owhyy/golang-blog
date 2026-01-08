@@ -1,0 +1,44 @@
+package templates
+
+import (
+	"fmt"
+	"owhyy/simple-auth/internal/models"
+	"owhyy/simple-auth/internal/types"
+)
+
+templ UserPosts(posts []models.Post, pagination types.PaginationData, username string) {
+	<section>
+		<hgroup style="text-align: center; margin-bottom: 2rem; align-items: flex-center;">
+			<h1>Posts by <em>{ username }</em></h1>
+		</hgroup>
+		if len(posts) > 0 {
+			<div class="grid" style="grid-template-columns: 1fr 1fr 1fr; margin-top: 2rem;">
+				for _, post := range posts {
+					<article>
+						<h2 style="margin-top: 0;">
+							<a href={ fmt.Sprintf("/posts/view/%s", post.Slug) }>
+								{ post.Title }
+							</a>
+						</h2>
+						if post.Excerpt != "" {
+							<p>{ post.Excerpt }</p>
+						}
+						if post.FeaturedImage != nil {
+							<img alt="blog" src={ *post.FeaturedImage } style="width: 100%; height: auto;" />
+						}
+						if post.PublishedAt != nil {
+							<small style="color: var(--pico-muted-color);">
+								Published on { post.PublishedAt.Format("Jan 2, 2006") }
+							</small>
+						}
+					</article>
+				}
+			</div>
+			@Paginator(pagination, "")
+		} else {
+			<article style="text-align: center; padding: 2rem;">
+				<p>No published posts by <strong>{ username }</strong> yet.</p>
+			</article>
+		}
+	</section>
+}

@@ -743,3 +743,45 @@ func (app *application) myPosts(w http.ResponseWriter, r *http.Request) {
 	}
 	app.render(w, r, http.StatusOK, "My posts", templates.MyPosts(posts, *pagination))
 }
+
+func (app *application) userPosts(w http.ResponseWriter, r *http.Request) {
+	username := r.PathValue("username")
+	if username == "" {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	user, err := app.users.GetByUsername(username)
+	if err != nil {
+		if errors.Is(err, models.ErrRecordNotFound) {
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
+		}
+		app.serverError(w, r, err)
+		return
+	}
+
+	pagination, err := app.newPagination(r)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	total, err := app.posts.CountPublishedByAuthorID(user.ID)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+	if total < pagination.PerPage {
+		total = pagination.PerPage
+	}
+	pagination.TotalPages = total / pagination.PerPage
+
+	posts, err := app.posts.GetPublishedByAuthorID(user.ID, pagination.PerPage, pagination.CurrentPage)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	app.render(w, r, http.StatusOK, fmt.Sprintf("Posts by %s", username), templates.UserPosts(posts, *pagination, username))
+}

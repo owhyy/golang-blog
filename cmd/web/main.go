@@ -81,6 +81,7 @@ func main() {
 	mux.HandleFunc("GET /reset-password", app.resetPasswordGet)
 	mux.HandleFunc("POST /reset-password", app.resetPasswordPost)
 	mux.HandleFunc("GET /posts/view/", app.viewPost)
+	mux.HandleFunc("GET /posts/user/{username}", app.userPosts)
 	mux.HandleFunc("POST /posts/{id}/publish", app.requireAuthentication(app.publishPost))
 	mux.HandleFunc("POST /posts/{id}/unpublish", app.requireAuthentication(app.unpublishPost))
 	mux.HandleFunc("PATCH /posts/{id}/update", app.requireAuthentication(app.updatePost))

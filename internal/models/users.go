@@ -141,6 +141,28 @@ func (m *UserModel) GetByEmail(email string) (*User, error) {
 	return user, err
 }
 
+func (m *UserModel) GetByUsername(username string) (*User, error) {
+	user := &User{}
+	err := m.DB.QueryRow(
+		"SELECT id, email, username, email_verified, is_admin, created_at FROM users WHERE username = ?",
+		username,
+	).Scan(
+		&user.ID,
+		&user.Email,
+		&user.Username,
+		&user.EmailVerified,
+		&user.IsAdmin,
+		&user.CreatedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrRecordNotFound
+		}
+		return nil, err
+	}
+	return user, err
+}
+
 func (m *UserModel) CanCreatePasswordRequest(id uint) (bool, error) {
 	var count int
 	err := m.DB.QueryRow(
