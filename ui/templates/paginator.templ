@@ -2,16 +2,17 @@ package templates
 
 import (
 	"fmt"
+	"net/url"
 	"owhyy/simple-auth/internal/types"
 )
 
-templ Paginator(pagination types.PaginationData) {
+templ Paginator(pagination types.PaginationData, searchQuery string) {
 	if pagination.CurrentPage > 0 {
 		<nav aria-label="Pagination" style="justify-content: center;">
 			<ul>
 				if pagination.CurrentPage > 1 {
 					<li>
-						<a href={ templ.SafeURL("?page=" + fmt.Sprintf("%d", pagination.Prev)) }>Previous</a>
+						<a href={ buildPaginatorURL(pagination.Prev, searchQuery) }>Previous</a>
 					</li>
 				}
 				<li>
@@ -19,10 +20,19 @@ templ Paginator(pagination types.PaginationData) {
 				</li>
 				if pagination.CurrentPage < pagination.TotalPages {
 					<li>
-						<a href={ templ.SafeURL("?page=" + fmt.Sprintf("%d", pagination.Next)) }>Next</a>
+						<a href={ buildPaginatorURL(pagination.Next, searchQuery) }>Next</a>
 					</li>
 				}
 			</ul>
 		</nav>
 	}
+}
+
+func buildPaginatorURL(page int, searchQuery string) templ.SafeURL {
+	params := url.Values{}
+	params.Set("page", fmt.Sprintf("%d", page))
+	if searchQuery != "" {
+		params.Set("search", searchQuery)
+	}
+	return templ.SafeURL("?" + params.Encode())
 }

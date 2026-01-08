@@ -257,6 +257,78 @@ func (m *PostModel) CountPublished() (int, error) {
 	return int(count), nil
 }
 
+func (m *PostModel) SearchByTitle(searchQuery string, perPage, currentPage int) ([]Post, error) {
+	query := `
+		SELECT
+			id,
+			title,
+			slug,
+			content,
+			excerpt,
+			author_id,
+			status,
+			published_at,
+			created_at,
+			updated_at,
+			featured_image
+		FROM posts
+		WHERE status = 'published' AND LOWER(title) LIKE LOWER($1)
+		ORDER BY published_at DESC
+		LIMIT $2
+		OFFSET $3
+	`
+
+	searchPattern := "%" + searchQuery + "%"
+	rows, err := m.DB.Query(query, searchPattern, perPage, (currentPage-1)*perPage)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var posts []Post
+
+	for rows.Next() {
+		var p Post
+
+		err := rows.Scan(
+			&p.ID,
+			&p.Title,
+			&p.Slug,
+			&p.Content,
+			&p.Excerpt,
+			&p.AuthorID,
+			&p.Status,
+			&p.PublishedAt,
+			&p.CreatedAt,
+			&p.UpdatedAt,
+			&p.FeaturedImage,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		posts = append(posts, p)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return posts, nil
+}
+
+func (m *PostModel) CountSearchByTitle(searchQuery string) (int, error) {
+	var count uint
+	query := `SELECT COUNT(1) FROM posts WHERE status = $1 AND LOWER(title) LIKE LOWER($2)`
+
+	searchPattern := "%" + searchQuery + "%"
+	err := m.DB.QueryRow(query, Published, searchPattern).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return int(count), nil
+}
+
 func (m *PostModel) CountForUser(author_id uint) (int, error) {
 	var count uint
 	query := `SELECT COUNT(1) FROM posts WHERE author_id = $1`

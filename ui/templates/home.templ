@@ -6,14 +6,34 @@ import (
 	"owhyy/simple-auth/internal/types"
 )
 
-templ Home(posts []models.Post, pagination types.PaginationData) {
+templ Home(posts []models.Post, pagination types.PaginationData, searchQuery string) {
 	<section>
 		<hgroup style="text-align: center; margin-bottom: 2rem; align-items: flex-center;">
 			<h1>Check these posts out</h1>
 		</hgroup>
+			<div style="display: flex; justify-content: center; align-items: center; margin-bottom: 2rem;">
+				<form style="max-width: 600px; width: 100%;"  method="GET" role="search" action="/">
+						<input 
+							type="search" 
+							name="search" 
+							placeholder="Search by title..." 
+							value={ searchQuery }
+							aria-label="Search posts by title"
+						/>
+						<input type="submit" value="Search"/>
+						if searchQuery != "" {
+							<a href="/" role="button" class="secondary">Clear</a>
+						}
+				</form>
+			</div>
+		if searchQuery != "" {
+			<p style="text-align: center; margin-bottom: 1.5rem; color: var(--pico-muted-color);">
+				Search results for: <strong>"{ searchQuery }"</strong>
+			</p>
+		}
 		if len(posts) > 0 {
-			@Paginator(pagination)
-			<div class="grid" style="grid-template-columns: 1fr 1fr 1fr;">
+			@Paginator(pagination, searchQuery)
+			<div class="grid" style="grid-template-columns: 1fr 1fr 1fr; margin-top: 2rem;">
 				for _, post := range posts {
 					<article>
 						<h2 style="margin-top: 0;">
@@ -28,7 +48,7 @@ templ Home(posts []models.Post, pagination types.PaginationData) {
 							<img alt="blog" src={ *post.FeaturedImage } style="width: 100%; height: auto;"/>
 						}
 						if post.PublishedAt != nil {
-							<small style="color: #555;">
+							<small style="color: var(--pico-muted-color);">
 								Published on { post.PublishedAt.Format("Jan 2, 2006") }
 							</small>
 						}
@@ -36,7 +56,14 @@ templ Home(posts []models.Post, pagination types.PaginationData) {
 				}
 			</div>
 		} else {
-			<p style="text-align: center;">No posts yet.</p>
+			<article style="text-align: center; padding: 2rem;">
+				if searchQuery != "" {
+					<p>No posts found matching <strong>"{ searchQuery }"</strong>.</p>
+					<p><a href="/">View all posts</a></p>
+				} else {
+					<p>No posts yet.</p>
+				}
+			</article>
 		}
 	</section>
 }

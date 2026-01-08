@@ -26,23 +26,46 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, r, err)
 		return
 	}
-	total, err := app.posts.CountPublished()
-	if err != nil {
-		app.serverError(w, r, err)
-		return
-	}
-	if total < pagination.PerPage {
-		total = pagination.PerPage
-	}
-	pagination.TotalPages = total / pagination.PerPage
 
-	posts, err := app.posts.GetPublished(pagination.PerPage, pagination.CurrentPage)
-	if err != nil {
-		app.serverError(w, r, err)
-		return
+	searchQuery := strings.TrimSpace(r.URL.Query().Get("search"))
+	var posts []models.Post
+	var total int
+
+	if searchQuery != "" {
+		total, err = app.posts.CountSearchByTitle(searchQuery)
+		if err != nil {
+			app.serverError(w, r, err)
+			return
+		}
+		if total < pagination.PerPage {
+			total = pagination.PerPage
+		}
+		pagination.TotalPages = total / pagination.PerPage
+
+		posts, err = app.posts.SearchByTitle(searchQuery, pagination.PerPage, pagination.CurrentPage)
+		if err != nil {
+			app.serverError(w, r, err)
+			return
+		}
+	} else {
+		total, err = app.posts.CountPublished()
+		if err != nil {
+			app.serverError(w, r, err)
+			return
+		}
+		if total < pagination.PerPage {
+			total = pagination.PerPage
+		}
+		pagination.TotalPages = total / pagination.PerPage
+
+		posts, err = app.posts.GetPublished(pagination.PerPage, pagination.CurrentPage)
+		if err != nil {
+			app.serverError(w, r, err)
+			return
+		}
 	}
 
-	app.render(w, r, http.StatusOK, "Home", templates.Home(posts, *pagination))
+	app.render(w, r, http.StatusOK, "Home", templates.Home(posts, *pagination, searchQuery))
 }
 
 func (app *application) profile(w http.ResponseWriter, r *http.Request) {

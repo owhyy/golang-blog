@@ -12,7 +12,7 @@ templ MyPosts(posts []models.Post, pagination types.PaginationData) {
 			<h1>My posts</h1>
 		</hgroup>
 		if len(posts) > 0 {
-			@Paginator(pagination)
+			@Paginator(pagination, "")
 			<div class="grid" style="grid-template-columns: 1fr 1fr 1fr;">
 				for _, post := range posts {
 					<article>

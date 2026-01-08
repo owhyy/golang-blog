@@ -10,10 +10,11 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
+	"net/url"
 	"owhyy/simple-auth/internal/types"
 )
 
-func Paginator(pagination types.PaginationData) templ.Component {
+func Paginator(pagination types.PaginationData, searchQuery string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -45,9 +46,9 @@ func Paginator(pagination types.PaginationData) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var2 templ.SafeURL
-				templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL("?page=" + fmt.Sprintf("%d", pagination.Prev)))
+				templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinURLErrs(buildPaginatorURL(pagination.Prev, searchQuery))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/paginator.templ`, Line: 14, Col: 76}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/paginator.templ`, Line: 15, Col: 63}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 				if templ_7745c5c3_Err != nil {
@@ -65,7 +66,7 @@ func Paginator(pagination types.PaginationData) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", pagination.CurrentPage))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/paginator.templ`, Line: 18, Col: 61}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/paginator.templ`, Line: 19, Col: 61}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -78,7 +79,7 @@ func Paginator(pagination types.PaginationData) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", pagination.TotalPages))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/paginator.templ`, Line: 18, Col: 122}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/paginator.templ`, Line: 19, Col: 122}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -94,9 +95,9 @@ func Paginator(pagination types.PaginationData) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var5 templ.SafeURL
-				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL("?page=" + fmt.Sprintf("%d", pagination.Next)))
+				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(buildPaginatorURL(pagination.Next, searchQuery))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/paginator.templ`, Line: 22, Col: 76}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/paginator.templ`, Line: 23, Col: 63}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -114,6 +115,15 @@ func Paginator(pagination types.PaginationData) templ.Component {
 		}
 		return nil
 	})
+}
+
+func buildPaginatorURL(page int, searchQuery string) templ.SafeURL {
+	params := url.Values{}
+	params.Set("page", fmt.Sprintf("%d", page))
+	if searchQuery != "" {
+		params.Set("search", searchQuery)
+	}
+	return templ.SafeURL("?" + params.Encode())
 }
 
 var _ = templruntime.GeneratedTemplate
