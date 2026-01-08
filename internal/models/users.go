@@ -114,13 +114,14 @@ func (m *UserModel) GetEmailByID(id uint) (string, error) {
 func (m *UserModel) GetByID(id uint) (*User, error) {
 	user := &User{}
 	err := m.DB.QueryRow(
-		"SELECT id, email, username, email_verified, created_at FROM users WHERE id = ?",
+		"SELECT id, email, username, email_verified, is_admin, created_at FROM users WHERE id = ?",
 		id,
 	).Scan(
 		&user.ID,
 		&user.Email,
 		&user.Username,
 		&user.EmailVerified,
+		&user.IsAdmin,
 		&user.CreatedAt,
 	)
 	return user, err

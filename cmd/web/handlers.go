@@ -407,7 +407,7 @@ func (app *application) viewPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := app.getAuthenticatedUser(r)
-	if post.Status == models.Draft && (!app.isAuthenticated(r) || user == nil || post.AuthorID != user.ID) {
+	if post.Status == models.Draft && (!app.isAuthenticated(r) || user == nil || (post.AuthorID != user.ID && !user.IsAdmin)) {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
@@ -439,7 +439,7 @@ func (app *application) publishPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if post.AuthorID != user.ID {
+	if post.AuthorID != user.ID && !user.IsAdmin {
 		app.clientError(w, http.StatusForbidden)
 		return
 	}
@@ -489,7 +489,7 @@ func (app *application) unpublishPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if post.AuthorID != user.ID {
+	if post.AuthorID != user.ID && !user.IsAdmin {
 		app.clientError(w, http.StatusForbidden)
 		return
 	}
@@ -538,7 +538,7 @@ func (app *application) updatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if post.AuthorID != user.ID {
+	if post.AuthorID != user.ID && !user.IsAdmin {
 		app.clientError(w, http.StatusForbidden)
 		return
 	}
@@ -598,7 +598,7 @@ func (app *application) deletePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if post.AuthorID != user.ID {
+	if post.AuthorID != user.ID && !user.IsAdmin {
 		app.clientError(w, http.StatusForbidden)
 		return
 	}

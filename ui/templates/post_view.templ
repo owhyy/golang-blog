@@ -8,7 +8,7 @@ import (
 templ PostView(post models.Post, isAuthenticated bool, authenticatedUser *models.User) {
 	<section style="margin-top: 2rem;" id="post">
 		<hgroup style="text-align: center; margin-bottom: 2rem;">
-			if isAuthenticated && authenticatedUser.ID == post.AuthorID {
+			if isAuthenticated && (authenticatedUser.ID == post.AuthorID || authenticatedUser.IsAdmin) {
 				<div x-data="{ editingTitle: false }">
 					<h1 x-show="!editingTitle" @click="editingTitle = true" style="cursor: pointer;" title="Click to edit">
 						{ post.Title }
@@ -38,7 +38,7 @@ templ PostView(post models.Post, isAuthenticated bool, authenticatedUser *models
 				<img src={ *post.FeaturedImage } alt={ fmt.Sprintf("Featured image for %s", post.Title) }/>
 			</figure>
 		}
-		if isAuthenticated && authenticatedUser.ID == post.AuthorID {
+		if isAuthenticated && (authenticatedUser.ID == post.AuthorID || authenticatedUser.IsAdmin) {
 			<div x-data="{ editingContent: false }">
 				<div x-ref="contentSource" style="display: none;">{ post.Content }</div>
 				<article x-show="!editingContent" @click="editingContent = true; $refs.contentTextarea.value = $refs.contentSource.textContent" style="cursor: pointer; min-height: 100px; white-space: pre-wrap;" title="Click to edit">
@@ -59,7 +59,7 @@ templ PostView(post models.Post, isAuthenticated bool, authenticatedUser *models
 			</small>
 		</p>
 		<footer style="margin-top: 3rem; text-align: center;">
-			if isAuthenticated && authenticatedUser.ID == post.AuthorID {
+			if isAuthenticated && (authenticatedUser.ID == post.AuthorID || authenticatedUser.IsAdmin) {
 				if post.Status == models.Draft {
 					<a hx-post={fmt.Sprintf("/posts/%d/publish", post.ID)} hx-target="#post" role="button" class="primary" hx-disabled-elt="find button">
 						Publish

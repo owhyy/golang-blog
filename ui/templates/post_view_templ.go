@@ -38,7 +38,7 @@ func PostView(post models.Post, isAuthenticated bool, authenticatedUser *models.
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if isAuthenticated && authenticatedUser.ID == post.AuthorID {
+		if isAuthenticated && (authenticatedUser.ID == post.AuthorID || authenticatedUser.IsAdmin) {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div x-data=\"{ editingTitle: false }\"><h1 x-show=\"!editingTitle\" @click=\"editingTitle = true\" style=\"cursor: pointer;\" title=\"Click to edit\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -186,7 +186,7 @@ func PostView(post models.Post, isAuthenticated bool, authenticatedUser *models.
 				return templ_7745c5c3_Err
 			}
 		}
-		if isAuthenticated && authenticatedUser.ID == post.AuthorID {
+		if isAuthenticated && (authenticatedUser.ID == post.AuthorID || authenticatedUser.IsAdmin) {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<div x-data=\"{ editingContent: false }\"><div x-ref=\"contentSource\" style=\"display: none;\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -266,7 +266,7 @@ func PostView(post models.Post, isAuthenticated bool, authenticatedUser *models.
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if isAuthenticated && authenticatedUser.ID == post.AuthorID {
+		if isAuthenticated && (authenticatedUser.ID == post.AuthorID || authenticatedUser.IsAdmin) {
 			if post.Status == models.Draft {
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<a hx-post=\"")
 				if templ_7745c5c3_Err != nil {
