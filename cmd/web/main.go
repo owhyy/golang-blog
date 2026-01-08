@@ -68,6 +68,9 @@ func main() {
 	fileServer := http.FileServerFS(ui.Files)
 	mux.Handle("GET /static/", fileServer)
 
+	uploadsFileServer := http.FileServer(http.Dir("uploads"))
+	mux.Handle("GET /uploads/", http.StripPrefix("/uploads/", uploadsFileServer))
+
 	mux.HandleFunc("GET /", app.home)
 	mux.HandleFunc("GET /login", app.loginGet)
 	mux.HandleFunc("POST /login", app.loginPost)
@@ -85,6 +88,8 @@ func main() {
 	mux.HandleFunc("POST /posts/{id}/publish", app.requireAuthentication(app.publishPost))
 	mux.HandleFunc("POST /posts/{id}/unpublish", app.requireAuthentication(app.unpublishPost))
 	mux.HandleFunc("PATCH /posts/{id}/update", app.requireAuthentication(app.updatePost))
+	mux.HandleFunc("PATCH /posts/{id}/update-image", app.requireAuthentication(app.updatePostImage))
+	mux.HandleFunc("DELETE /posts/{id}/image", app.requireAuthentication(app.deletePostImage))
 	mux.HandleFunc("DELETE /posts/{id}", app.requireAuthentication(app.deletePost))
 	mux.HandleFunc("GET /posts/my", app.requireAuthentication(app.myPosts))
 	mux.HandleFunc("GET /posts/create", app.requireAuthentication(app.postCreateGet))

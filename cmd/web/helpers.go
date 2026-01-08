@@ -1,11 +1,18 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/hex"
+	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"owhyy/simple-auth/internal/models"
 	"owhyy/simple-auth/internal/types"
 	"owhyy/simple-auth/ui/templates"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/a-h/templ"
 )
@@ -77,7 +84,6 @@ func (app *application) newPagination(r *http.Request) (*types.PaginationData, e
 	}
 	data.CurrentPage = curPage
 
-	// TODO: implement this on frontend
 	perPage := 30
 	if s := r.URL.Query().Get("per_page"); s != "" {
 		perPage, err = strconv.Atoi(s)
@@ -95,4 +101,50 @@ func (app *application) newPagination(r *http.Request) (*types.PaginationData, e
 	data.Next = curPage + 1
 
 	return data, nil
+}
+
+func (app *application) saveUploadedFile(r *http.Request, formField string) (*string, error) {
+	file, header, err := r.FormFile(formField)
+	if err != nil {
+		if err == http.ErrMissingFile {
+			return nil, nil
+		}
+		return nil, err
+	}
+	defer file.Close()
+
+	contentType := header.Header.Get("Content-Type")
+	if !strings.HasPrefix(contentType, "image/") {
+		return nil, fmt.Errorf("invalid file type: %s. Only images are allowed", contentType)
+	}
+	const maxFileSize = 10 << 20 // 10MB
+	if header.Size > maxFileSize {
+		return nil, fmt.Errorf("file too large: %d bytes. Maximum size is 10MB", header.Size)
+	}
+
+	ext := filepath.Ext(header.Filename)
+	randomBytes := make([]byte, 16)
+	if _, err := rand.Read(randomBytes); err != nil {
+		return nil, err
+	}
+	filename := hex.EncodeToString(randomBytes) + ext
+
+	uploadsDir := "uploads"
+	if err := os.MkdirAll(uploadsDir, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create uploads directory: %w", err)
+	}
+	filePath := filepath.Join(uploadsDir, filename)
+	dst, err := os.Create(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create file: %w", err)
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, file); err != nil {
+		os.Remove(filePath)
+		return nil, fmt.Errorf("failed to save file: %w", err)
+	}
+
+	relativePath := "/uploads/" + filename
+	return &relativePath, nil
 }

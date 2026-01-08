@@ -469,14 +469,14 @@ func (m *PostModel) UpdateStatus(id uint, status PostStatus, publishedAt *time.T
 	return err
 }
 
-func (m *PostModel) Update(id uint, title, content string) error {
+func (m *PostModel) Update(id uint, title, content string, featuredImage *string) error {
 	query := `
 		UPDATE posts
-		SET title = $1, content = $2, updated_at = CURRENT_TIMESTAMP
-		WHERE id = $3
+		SET title = $1, content = $2, featured_image = $3, updated_at = CURRENT_TIMESTAMP
+		WHERE id = $4
 	`
 
-	_, err := m.DB.Exec(query, title, content, id)
+	_, err := m.DB.Exec(query, title, content, featuredImage, id)
 	return err
 }
 

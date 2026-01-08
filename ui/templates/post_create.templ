@@ -16,12 +16,17 @@ templ PostCreate(user *models.User) {
 				<p><a href="/profile" role="button">Go to Profile</a></p>
 			</article>
 		} else {
-			<form hx-post="/posts/create" hx-target="#form-errors" hx-swap="innerHTML">
+			<form hx-post="/posts/create" hx-target="#form-errors" hx-swap="innerHTML" enctype="multipart/form-data" hx-disabled-elt="find button">
 				<div id="form-errors"></div>
 				<label>
 					Title *
 					<input type="text" name="title" aria-describedby="title-helper" required/>
 					<small id="title-helper">Required</small>
+				</label>
+				<label>
+					Featured Image
+					<input type="file" name="featured_image" accept="image/*"/>
+					<small>Optional. Accepted formats: JPG, PNG, GIF, WebP</small>
 				</label>
 				<label>
 					Excerpt

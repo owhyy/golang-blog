@@ -582,7 +582,116 @@ func (app *application) updatePost(w http.ResponseWriter, r *http.Request) {
 		content = post.Content
 	}
 
-	err = app.posts.Update(uint(postID), title, content)
+	err = app.posts.Update(uint(postID), title, content, post.FeaturedImage)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	updatedPost, err := app.posts.GetByID(uint(postID))
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	templates.PostView(*updatedPost, true, user).Render(r.Context(), w)
+}
+
+func (app *application) updatePostImage(w http.ResponseWriter, r *http.Request) {
+	user := app.getAuthenticatedUser(r)
+	if user == nil {
+		app.clientError(w, http.StatusUnauthorized)
+		return
+	}
+
+	idStr := r.PathValue("id")
+	postID, err := strconv.Atoi(idStr)
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	post, err := app.posts.GetByID(uint(postID))
+	if err != nil {
+		if errors.Is(err, models.ErrRecordNotFound) {
+			app.clientError(w, http.StatusNotFound)
+			return
+		}
+		app.serverError(w, r, err)
+		return
+	}
+
+	if post.AuthorID != user.ID && !user.IsAdmin {
+		app.clientError(w, http.StatusForbidden)
+		return
+	}
+
+	const maxMemory = 10 << 20 // 10MB
+	err = r.ParseMultipartForm(maxMemory)
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	featuredImagePath, err := app.saveUploadedFile(r, "featured_image")
+	if err != nil {
+		app.errorLog.Printf("Error saving featured image: %v", err)
+		app.renderHTMXError(w, "Error uploading image: "+err.Error())
+		return
+	}
+
+	var imageToUse *string
+	if featuredImagePath != nil {
+		imageToUse = featuredImagePath
+	} else {
+		imageToUse = post.FeaturedImage
+	}
+
+	err = app.posts.Update(uint(postID), post.Title, post.Content, imageToUse)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	updatedPost, err := app.posts.GetByID(uint(postID))
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	templates.PostView(*updatedPost, true, user).Render(r.Context(), w)
+}
+
+func (app *application) deletePostImage(w http.ResponseWriter, r *http.Request) {
+	user := app.getAuthenticatedUser(r)
+	if user == nil {
+		app.clientError(w, http.StatusUnauthorized)
+		return
+	}
+
+	idStr := r.PathValue("id")
+	postID, err := strconv.Atoi(idStr)
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	post, err := app.posts.GetByID(uint(postID))
+	if err != nil {
+		if errors.Is(err, models.ErrRecordNotFound) {
+			app.clientError(w, http.StatusNotFound)
+			return
+		}
+		app.serverError(w, r, err)
+		return
+	}
+
+	if post.AuthorID != user.ID && !user.IsAdmin {
+		app.clientError(w, http.StatusForbidden)
+		return
+	}
+
+	err = app.posts.Update(uint(postID), post.Title, post.Content, nil)
 	if err != nil {
 		app.serverError(w, r, err)
 		return
@@ -681,6 +790,13 @@ func (app *application) postCreatePost(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	featuredImagePath, err := app.saveUploadedFile(r, "featured_image")
+	if err != nil {
+		app.errorLog.Printf("Error saving featured image: %v", err)
+		app.renderHTMXError(w, "Error uploading image: "+err.Error())
+		return
+	}
+
 	var published_at *time.Time
 	status := models.PostStatus(statusStr)
 	if status == models.Published {
@@ -705,7 +821,7 @@ func (app *application) postCreatePost(w http.ResponseWriter, r *http.Request) {
 		AuthorID:      author.ID,
 		Status:        status,
 		PublishedAt:   published_at,
-		FeaturedImage: nil,
+		FeaturedImage: featuredImagePath,
 	}
 
 	err = app.posts.Create(post)
