@@ -637,10 +637,27 @@ func (app *application) deletePost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) postCreateGet(w http.ResponseWriter, r *http.Request) {
-	app.render(w, r, http.StatusOK, "New Post", templates.PostCreate())
+	user := app.getAuthenticatedUser(r)
+	if user == nil {
+		app.clientError(w, http.StatusUnauthorized)
+		return
+	}
+
+	app.render(w, r, http.StatusOK, "New Post", templates.PostCreate(user))
 }
 
 func (app *application) postCreatePost(w http.ResponseWriter, r *http.Request) {
+	author := app.getAuthenticatedUser(r)
+	if author == nil {
+		app.clientError(w, http.StatusUnauthorized)
+		return
+	}
+
+	if !author.EmailVerified && !author.IsAdmin {
+		app.clientError(w, http.StatusForbidden)
+		return
+	}
+
 	err := r.ParseForm()
 	if err != nil {
 		app.clientError(w, http.StatusBadRequest)
@@ -670,8 +687,6 @@ func (app *application) postCreatePost(w http.ResponseWriter, r *http.Request) {
 		t := time.Now()
 		published_at = &t
 	}
-
-	author := app.getAuthenticatedUser(r)
 
 	slug := slug2.Make(title)
 	slug_cnt, err := app.posts.CountSlugs(slug)

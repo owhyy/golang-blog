@@ -8,7 +8,9 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func PostCreate() templ.Component {
+import "owhyy/simple-auth/internal/models"
+
+func PostCreate(user *models.User) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -29,7 +31,22 @@ func PostCreate() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section><hgroup style=\"text-align: center; margin-bottom: 2rem;\"><h1>New Post</h1><p>Create a new blog post</p></hgroup><form hx-post=\"/posts/create\" hx-target=\"#form-errors\" hx-swap=\"innerHTML\"><div id=\"form-errors\"></div><label>Title * <input type=\"text\" name=\"title\" aria-describedby=\"title-helper\" required> <small id=\"title-helper\">Required</small></label> <label>Excerpt <textarea name=\"excerpt\" rows=\"3\"></textarea></label> <label>Content * <textarea name=\"content\" rows=\"12\" required></textarea> <small id=\"title-helper\">Required</small></label> <label>Status <select name=\"status\"><option value=\"draft\">Draft</option> <option value=\"published\">Published</option></select></label><div class=\"grid\" style=\"margin-top: 2rem;\"><button type=\"submit\">Create post</button> <a type=\"submit\" href=\"/\" role=\"button\" class=\"secondary\">Cancel</a></div></form></section>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section><hgroup style=\"text-align: center; margin-bottom: 2rem;\"><h1>New Post</h1><p>Create a new blog post</p></hgroup> ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if !user.EmailVerified && !user.IsAdmin {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<article style=\"text-align: center; padding: 2rem;\"><p><strong>Email verification required</strong></p><p>You need to verify your email address before you can create posts.</p><p>Please check your email for the verification link, or <a href=\"/profile\">visit your profile</a> to resend the verification email.</p><p><a href=\"/profile\" role=\"button\">Go to Profile</a></p></article>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<form hx-post=\"/posts/create\" hx-target=\"#form-errors\" hx-swap=\"innerHTML\"><div id=\"form-errors\"></div><label>Title * <input type=\"text\" name=\"title\" aria-describedby=\"title-helper\" required> <small id=\"title-helper\">Required</small></label> <label>Excerpt <textarea name=\"excerpt\" rows=\"3\"></textarea></label> <label>Content * <textarea name=\"content\" rows=\"12\" required></textarea> <small id=\"title-helper\">Required</small></label> <label>Status <select name=\"status\"><option value=\"draft\">Draft</option> <option value=\"published\">Published</option></select></label><div class=\"grid\" style=\"margin-top: 2rem;\"><button type=\"submit\">Create post</button> <a type=\"submit\" href=\"/\" role=\"button\" class=\"secondary\">Cancel</a></div></form>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</section>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
