@@ -144,7 +144,7 @@ func Paginator(pagination types.PaginationData, searchQuery string) templ.Compon
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<label for=\"per_page\" style=\"margin: 0; white-space: nowrap;\">Per page:</label> <select name=\"per_page\" id=\"per_page\" x-model=\"perPage\" @change=\"this.form.submit()\" style=\"margin: 0;\"><option value=\"30\">30</option> <option value=\"60\">60</option> <option value=\"90\">90</option></select></form></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<label for=\"per_page\" style=\"margin: 0; white-space: nowrap;\">Per page:</label> <select name=\"per_page\" id=\"per_page\" x-model=\"perPage\" @change=\"$event.target.closest('form').submit()\" style=\"margin: 0;\"><option value=\"30\">30</option> <option value=\"60\">60</option> <option value=\"90\">90</option></select></form></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -33,7 +33,7 @@ templ Paginator(pagination types.PaginationData, searchQuery string) {
 				<label for="per_page" style="margin: 0; white-space: nowrap;">
 					Per page:
 				</label>
-				<select name="per_page" id="per_page" x-model="perPage" @change="this.form.submit()" style="margin: 0;">
+				<select name="per_page" id="per_page" x-model="perPage" @change="$event.target.closest('form').submit()" style="margin: 0;">
 					<option value="30">30</option>
 					<option value="60">60</option>
 					<option value="90">90</option>
