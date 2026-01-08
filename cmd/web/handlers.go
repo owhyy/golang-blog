@@ -7,8 +7,10 @@ import (
 	"html"
 	"net/http"
 	"net/mail"
+	"os"
 	"owhyy/simple-auth/internal/models"
 	"owhyy/simple-auth/ui/templates"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -900,4 +902,55 @@ func (app *application) userPosts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.render(w, r, http.StatusOK, fmt.Sprintf("Posts by %s", username), templates.UserPosts(posts, *pagination, username))
+}
+
+func (app *application) serveUpload(w http.ResponseWriter, r *http.Request) {
+	filename := r.PathValue("filename")
+	if filename == "" {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	filename = filepath.Base(filename)
+	if filename == "." || filename == "/" {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	filePath := filepath.Join("uploads", filename)
+
+	absPath, err := filepath.Abs(filePath)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	uploadsDir, err := filepath.Abs("uploads")
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	relPath, err := filepath.Rel(uploadsDir, absPath)
+	if err != nil || strings.HasPrefix(relPath, "..") {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	info, err := os.Stat(filePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			app.clientError(w, http.StatusNotFound)
+			return
+		}
+		app.serverError(w, r, err)
+		return
+	}
+
+	if info.IsDir() {
+		app.clientError(w, http.StatusForbidden)
+		return
+	}
+
+	http.ServeFile(w, r, filePath)
 }

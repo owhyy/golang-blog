@@ -68,8 +68,10 @@ func main() {
 	fileServer := http.FileServerFS(ui.Files)
 	mux.Handle("GET /static/", fileServer)
 
-	uploadsFileServer := http.FileServer(http.Dir("uploads"))
-	mux.Handle("GET /uploads/", http.StripPrefix("/uploads/", uploadsFileServer))
+	mux.HandleFunc("GET /uploads/", func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+	})
+	mux.HandleFunc("GET /uploads/{filename}", app.serveUpload)
 
 	mux.HandleFunc("GET /", app.home)
 	mux.HandleFunc("GET /login", app.loginGet)
