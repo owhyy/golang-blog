@@ -8,31 +8,49 @@ import (
 
 templ Paginator(pagination types.PaginationData, searchQuery string) {
 	if pagination.CurrentPage > 0 {
-		<nav aria-label="Pagination" style="justify-content: center;">
-			<ul>
-				if pagination.CurrentPage > 1 {
+		<div style="display: flex; justify-content: center; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+			<nav aria-label="Pagination" style="justify-content: center;">
+				<ul>
+					if pagination.CurrentPage > 1 {
+						<li>
+							<a href={ buildPaginatorURL(pagination.Prev, searchQuery, pagination.PerPage) }>Previous</a>
+						</li>
+					}
 					<li>
-						<a href={ buildPaginatorURL(pagination.Prev, searchQuery) }>Previous</a>
+						<strong>Page { fmt.Sprintf("%d", pagination.CurrentPage) }</strong> out of { fmt.Sprintf("%d", pagination.TotalPages) }
 					</li>
+					if pagination.CurrentPage < pagination.TotalPages {
+						<li>
+							<a href={ buildPaginatorURL(pagination.Next, searchQuery, pagination.PerPage) }>Next</a>
+						</li>
+					}
+				</ul>
+			</nav>
+			<form method="GET" action="?" style="display: flex; align-items: center; gap: 0.5rem;" x-data={ fmt.Sprintf("{ perPage: %d }", pagination.PerPage) }>
+				if searchQuery != "" {
+					<input type="hidden" name="search" value={ searchQuery } />
 				}
-				<li>
-					<strong>Page { fmt.Sprintf("%d", pagination.CurrentPage) }</strong> out of { fmt.Sprintf("%d", pagination.TotalPages) }
-				</li>
-				if pagination.CurrentPage < pagination.TotalPages {
-					<li>
-						<a href={ buildPaginatorURL(pagination.Next, searchQuery) }>Next</a>
-					</li>
-				}
-			</ul>
-		</nav>
+				<label for="per_page" style="margin: 0; white-space: nowrap;">
+					Per page:
+				</label>
+				<select name="per_page" id="per_page" x-model="perPage" @change="this.form.submit()" style="margin: 0;">
+					<option value="30">30</option>
+					<option value="60">60</option>
+					<option value="90">90</option>
+				</select>
+			</form>
+		</div>
 	}
 }
 
-func buildPaginatorURL(page int, searchQuery string) templ.SafeURL {
+func buildPaginatorURL(page int, searchQuery string, perPage int) templ.SafeURL {
 	params := url.Values{}
 	params.Set("page", fmt.Sprintf("%d", page))
 	if searchQuery != "" {
 		params.Set("search", searchQuery)
+	}
+	if perPage != 30 {
+		params.Set("per_page", fmt.Sprintf("%d", perPage))
 	}
 	return templ.SafeURL("?" + params.Encode())
 }

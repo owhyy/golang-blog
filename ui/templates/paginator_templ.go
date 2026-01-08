@@ -36,7 +36,7 @@ func Paginator(pagination types.PaginationData, searchQuery string) templ.Compon
 		}
 		ctx = templ.ClearChildren(ctx)
 		if pagination.CurrentPage > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<nav aria-label=\"Pagination\" style=\"justify-content: center;\"><ul>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div style=\"display: flex; justify-content: center; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;\"><nav aria-label=\"Pagination\" style=\"justify-content: center;\"><ul>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -46,9 +46,9 @@ func Paginator(pagination types.PaginationData, searchQuery string) templ.Compon
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var2 templ.SafeURL
-				templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinURLErrs(buildPaginatorURL(pagination.Prev, searchQuery))
+				templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinURLErrs(buildPaginatorURL(pagination.Prev, searchQuery, pagination.PerPage))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/paginator.templ`, Line: 15, Col: 63}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/paginator.templ`, Line: 16, Col: 84}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 				if templ_7745c5c3_Err != nil {
@@ -66,7 +66,7 @@ func Paginator(pagination types.PaginationData, searchQuery string) templ.Compon
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", pagination.CurrentPage))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/paginator.templ`, Line: 19, Col: 61}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/paginator.templ`, Line: 20, Col: 62}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -79,7 +79,7 @@ func Paginator(pagination types.PaginationData, searchQuery string) templ.Compon
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", pagination.TotalPages))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/paginator.templ`, Line: 19, Col: 122}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/paginator.templ`, Line: 20, Col: 123}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -95,9 +95,9 @@ func Paginator(pagination types.PaginationData, searchQuery string) templ.Compon
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var5 templ.SafeURL
-				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(buildPaginatorURL(pagination.Next, searchQuery))
+				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(buildPaginatorURL(pagination.Next, searchQuery, pagination.PerPage))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/paginator.templ`, Line: 23, Col: 63}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/paginator.templ`, Line: 24, Col: 84}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -108,7 +108,43 @@ func Paginator(pagination types.PaginationData, searchQuery string) templ.Compon
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</ul></nav>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</ul></nav><form method=\"GET\" action=\"?\" style=\"display: flex; align-items: center; gap: 0.5rem;\" x-data=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var6 string
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("{ perPage: %d }", pagination.PerPage))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/paginator.templ`, Line: 29, Col: 149}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if searchQuery != "" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<input type=\"hidden\" name=\"search\" value=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var7 string
+				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(searchQuery)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templates/paginator.templ`, Line: 31, Col: 59}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\"> ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<label for=\"per_page\" style=\"margin: 0; white-space: nowrap;\">Per page:</label> <select name=\"per_page\" id=\"per_page\" x-model=\"perPage\" @change=\"this.form.submit()\" style=\"margin: 0;\"><option value=\"30\">30</option> <option value=\"60\">60</option> <option value=\"90\">90</option></select></form></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -117,11 +153,14 @@ func Paginator(pagination types.PaginationData, searchQuery string) templ.Compon
 	})
 }
 
-func buildPaginatorURL(page int, searchQuery string) templ.SafeURL {
+func buildPaginatorURL(page int, searchQuery string, perPage int) templ.SafeURL {
 	params := url.Values{}
 	params.Set("page", fmt.Sprintf("%d", page))
 	if searchQuery != "" {
 		params.Set("search", searchQuery)
+	}
+	if perPage != 30 {
+		params.Set("per_page", fmt.Sprintf("%d", perPage))
 	}
 	return templ.SafeURL("?" + params.Encode())
 }

@@ -27,7 +27,6 @@ templ Home(posts []models.Post, pagination types.PaginationData, searchQuery str
 	</p>
 	}
 	if len(posts) > 0 {
-	@Paginator(pagination, searchQuery)
 	<div class="grid" style="grid-template-columns: 1fr 1fr 1fr; margin-top: 2rem;">
 		for _, post := range posts {
 		<article>
@@ -50,6 +49,7 @@ templ Home(posts []models.Post, pagination types.PaginationData, searchQuery str
 		</article>
 		}
 	</div>
+	@Paginator(pagination, searchQuery)
 	} else {
 	<article style="text-align: center; padding: 2rem;">
 		if searchQuery != "" {
