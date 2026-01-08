@@ -83,6 +83,7 @@ func main() {
 	mux.HandleFunc("GET /posts/view/", app.viewPost)
 	mux.HandleFunc("POST /posts/{id}/publish", app.requireAuthentication(app.publishPost))
 	mux.HandleFunc("POST /posts/{id}/unpublish", app.requireAuthentication(app.unpublishPost))
+	mux.HandleFunc("PATCH /posts/{id}/update", app.requireAuthentication(app.updatePost))
 	mux.HandleFunc("GET /posts/my", app.requireAuthentication(app.myPosts))
 	mux.HandleFunc("GET /posts/create", app.requireAuthentication(app.postCreateGet))
 	mux.HandleFunc("POST /posts/create", app.requireAuthentication(app.postCreatePost))		

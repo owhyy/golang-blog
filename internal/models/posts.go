@@ -326,3 +326,14 @@ func (m *PostModel) UpdateStatus(id uint, status PostStatus, publishedAt *time.T
 	_, err := m.DB.Exec(query, status, publishedAt, id)
 	return err
 }
+
+func (m *PostModel) Update(id uint, title, content string) error {
+	query := `
+		UPDATE posts
+		SET title = $1, content = $2, updated_at = CURRENT_TIMESTAMP
+		WHERE id = $3
+	`
+
+	_, err := m.DB.Exec(query, title, content, id)
+	return err
+}

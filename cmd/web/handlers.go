@@ -514,6 +514,66 @@ func (app *application) unpublishPost(w http.ResponseWriter, r *http.Request) {
 	templates.PostView(*updatedPost, true, user).Render(r.Context(), w)
 }
 
+func (app *application) updatePost(w http.ResponseWriter, r *http.Request) {
+	user := app.getAuthenticatedUser(r)
+	if user == nil {
+		app.clientError(w, http.StatusUnauthorized)
+		return
+	}
+
+	idStr := r.PathValue("id")
+	postID, err := strconv.Atoi(idStr)
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	post, err := app.posts.GetByID(uint(postID))
+	if err != nil {
+		if errors.Is(err, models.ErrRecordNotFound) {
+			app.clientError(w, http.StatusNotFound)
+			return
+		}
+		app.serverError(w, r, err)
+		return
+	}
+
+	if post.AuthorID != user.ID {
+		app.clientError(w, http.StatusForbidden)
+		return
+	}
+
+	err = r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	title := r.PostForm.Get("title")
+	content := r.PostForm.Get("content")
+
+	if title == "" {
+		title = post.Title
+	}
+	if content == "" {
+		content = post.Content
+	}
+
+	err = app.posts.Update(uint(postID), title, content)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	updatedPost, err := app.posts.GetByID(uint(postID))
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	templates.PostView(*updatedPost, true, user).Render(r.Context(), w)
+}
+
 func (app *application) postCreateGet(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "New Post", templates.PostCreate())
 }

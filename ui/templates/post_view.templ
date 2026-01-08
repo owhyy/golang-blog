@@ -8,7 +8,18 @@ import (
 templ PostView(post models.Post, isAuthenticated bool, authenticatedUser *models.User) {
 	<section style="margin-top: 2rem;" id="post">
 		<hgroup style="text-align: center; margin-bottom: 2rem;">
-			<h1>{ post.Title }</h1>
+			if isAuthenticated && authenticatedUser.ID == post.AuthorID {
+				<div x-data="{ editingTitle: false }">
+					<h1 x-show="!editingTitle" @click="editingTitle = true" style="cursor: pointer;" title="Click to edit">
+						{ post.Title }
+					</h1>
+					<form x-show="editingTitle" @submit.prevent="editingTitle = false" hx-patch={fmt.Sprintf("/posts/%d/update", post.ID)} hx-target="#post" hx-swap="outerHTML">
+						<input type="text" name="title" value={ post.Title } @blur="editingTitle = false; $el.closest('form').requestSubmit()" @keydown.escape="editingTitle = false" style="font-size: 2rem; text-align: center; width: 100%;" autofocus required/>
+					</form>
+				</div>
+			} else {
+				<h1>{ post.Title }</h1>
+			}
 			<p>
 				<small>
 					by <a href={ fmt.Sprintf("/posts/user/%s", post.AuthorUsername) }>{ post.AuthorUsername }</a>
@@ -27,9 +38,21 @@ templ PostView(post models.Post, isAuthenticated bool, authenticatedUser *models
 				<img src={ *post.FeaturedImage } alt={ fmt.Sprintf("Featured image for %s", post.Title) }/>
 			</figure>
 		}
-		<article>
-			@templ.Raw(post.Content)
-		</article>
+		if isAuthenticated && authenticatedUser.ID == post.AuthorID {
+			<div x-data="{ editingContent: false }">
+				<div x-ref="contentSource" style="display: none;">{ post.Content }</div>
+				<article x-show="!editingContent" @click="editingContent = true; $refs.contentTextarea.value = $refs.contentSource.textContent" style="cursor: pointer; min-height: 100px; white-space: pre-wrap;" title="Click to edit">
+					{ post.Content }
+				</article>
+				<form x-show="editingContent" @submit.prevent="editingContent = false" hx-patch={fmt.Sprintf("/posts/%d/update", post.ID)} hx-target="#post" hx-swap="outerHTML">
+					<textarea x-ref="contentTextarea" name="content" @blur="editingContent = false; $el.closest('form').requestSubmit()" @keydown.escape="editingContent = false" rows="20" style="width: 100%;" required></textarea>
+				</form>
+			</div>
+		} else {
+			<article style="white-space: pre-wrap;">
+				{ post.Content }
+			</article>
+		}
 		<p>
 			<small>
 				Last edited on { post.UpdatedAt.Format("Jan 2, 2006 15:04") }
