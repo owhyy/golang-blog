@@ -1,7 +1,7 @@
 FROM golang:1.25.4-alpine AS builder
 
 # Required for CGO
-RUN apk add --no-cache gcc musl-dev
+RUN apk add --no-cache gcc musl-dev ca-certificates
 
 WORKDIR /app
 
@@ -27,6 +27,7 @@ FROM scratch
 COPY --from=builder /app/blog /blog
 COPY --from=builder /app/populate /populate
 COPY --from=builder /app/createadmin /createadmin
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 EXPOSE 8080
 ENTRYPOINT ["/blog"]
