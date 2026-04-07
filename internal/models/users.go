@@ -33,7 +33,7 @@ func (m *UserModel) SetPassword(id uint, password string) error {
 		return err
 	}
 
-	_, err = m.DB.Exec("UPDATE users SET password_hash = $1 WHERE id = $2", id, string(hashedPassword))
+	_, err = m.DB.Exec("UPDATE users SET password_hash = $1 WHERE id = $2", string(hashedPassword), id)
 	if err != nil {
 		return err
 	}
