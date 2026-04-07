@@ -72,7 +72,7 @@ func (s *EmailService) SendResetPasswordEmail(to, baseURL, token string) error {
 		<body>
 			<h2>Password reset</h2>
 			<p>You can reset your password by clicking the link below:</p>
-			<p><a href="%s">Verify Email</a></p>
+			<p><a href="%s">Reset Password</a></p>
 			<p>This link will expire in 10 minutes.</p>
 			<p>If you didn't request a password reset, please ignore this email.</p>
 		</body>
